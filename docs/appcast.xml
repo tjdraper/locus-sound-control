@@ -3,6 +3,17 @@
     <channel>
         <title>Locus Sound Control</title>
         <item>
+            <title>2026.0.2</title>
+            <pubDate>Sun, 20 Sep 2026 16:14:30 -0500</pubDate>
+            <link>https://github.com/tjdraper/locus-sound-control</link>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>2026.0.2</sparkle:version>
+            <sparkle:shortVersionString>2026.0.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://tjdraper.github.io/locus-sound-control/LocusSoundControl-2026.0.2.md</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/tjdraper/locus-sound-control/releases/download/v2026.0.2/LocusSoundControl-2026.0.2.zip" length="2480651" type="application/octet-stream" sparkle:edSignature="LFJy9UCVG5s7IKD/YvaC7MU1RAH3KWE6CHnyDQxPuBYrEZDoGld8VnQpmKW5P8ui4k4XecUHvT4mEtKS7hMGDA=="/>
+        </item>
+        <item>
             <title>2026.0.1</title>
             <pubDate>Sun, 20 Sep 2026 16:02:54 -0500</pubDate>
             <link>https://github.com/tjdraper/locus-sound-control</link>
