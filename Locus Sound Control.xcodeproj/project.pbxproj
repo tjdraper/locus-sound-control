@@ -6,6 +6,10 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		324EA471305F81D100DDFE7D /* Locus Sound Control.icon in Resources */ = {isa = PBXBuildFile; fileRef = 324EA470305F81D100DDFE7D /* Locus Sound Control.icon */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		324EA44C305F81D100DDFE7D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -19,6 +23,7 @@
 /* Begin PBXFileReference section */
 		324EA43E305F81D000DDFE7D /* Locus Sound Control.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Locus Sound Control.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		324EA44B305F81D100DDFE7D /* Locus Sound Control Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Locus Sound Control Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		324EA470305F81D100DDFE7D /* Locus Sound Control.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Locus Sound Control.icon"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -51,6 +56,7 @@
 		324EA435305F81D000DDFE7D = {
 			isa = PBXGroup;
 			children = (
+				324EA470305F81D100DDFE7D /* Locus Sound Control.icon */,
 				324EA440305F81D000DDFE7D /* Locus Sound Control */,
 				324EA44E305F81D100DDFE7D /* Locus Sound Control Tests */,
 				324EA43F305F81D000DDFE7D /* Products */,
@@ -150,6 +156,7 @@
 		324EA43C305F81D000DDFE7D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				324EA471305F81D100DDFE7D /* Locus Sound Control.icon in Resources */,
 			);
 		};
 		324EA449305F81D100DDFE7D /* Resources */ = {
@@ -304,7 +311,7 @@
 		324EA45E305F81D100DDFE7D /* Debug configuration for PBXNativeTarget "Locus Sound Control" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "Locus Sound Control";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -336,7 +343,7 @@
 		324EA45F305F81D100DDFE7D /* Release configuration for PBXNativeTarget "Locus Sound Control" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "Locus Sound Control";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
