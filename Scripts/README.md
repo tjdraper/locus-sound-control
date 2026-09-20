@@ -28,6 +28,14 @@ It needs `trash`, which is not part of macOS: `brew install trash`.
 
 The build keeps whatever version the project currently has, so Sparkle may offer to replace it with a newer release.
 
+## Scripts that are not about releasing
+
+Each carries its own header comment explaining what it answers and why.
+
+- `dump-audio-devices.swift` — every output device attached right now, with the identifiers the priority list is keyed on. Needs the Swift compiler. Run it on two Macs and diff, to see which UIDs travel.
+- `dump-audio-device-history.sh` — every audio device UID this Mac has ever seen, read from CoreAudio's own records. Needs nothing beyond a stock Mac. This is the one that shows a device's UID drifting across ports.
+- `render-sf-symbols.swift` — draws SF Symbols at menu bar size, to judge whether a candidate icon survives 18pt. How the curated set in the plan was chosen.
+
 ## Versions and the beta channel
 
 Versions are `YYYY.N` for a release and `YYYY.N.B` for a beta. Betas leading to `2026.4` are numbered `2026.3.1`, `2026.3.2` and so on: each sits above the `2026.3` release and below the `2026.4` it becomes. A year starts its betas at `YYYY.0.1` and its first release at `YYYY.1`.
