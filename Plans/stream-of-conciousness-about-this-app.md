@@ -1,0 +1,11 @@
+I've been using Rogue Amoeba Sound Source and I've been surprised at how much I don't like it. It constantly pops little notifications in the menu bar about how my output has changed to my AirPods when I'm listening on another device.
+
+And really, prioritizing outputs is all I use Sound Source for.
+
+So here's what I want to build: a little menu bar Mac app where it shows the icon for the currently selected sound output. It has a window where the outputs can be dragged up or down in priority. When no override is set (see below on overrides), it sets sound output to the highest available devices in priority. So, for instance, on a MacBook Pro the available device when nothing else is connected is the internal speakers. When connected to a Studio Display, there are now two available devices: Studio Display Speakers and MacBook Pro Speakers. If the Studio Display Speakers come first in the dragged order, then the app sets the Studio Display Speakers as the output. And if I have AirPods, and they are the highest in the order, then output will be set tot he AirPods. If I put my AirPods in the case, then the output falls down to the next highest priority device. The app will do ALL this without a single damn notification or popup from the menu bar icon.
+
+Now, overrides. Clicking the menu bar icon will show the list of outputs in the priority order, and will indicate which one is currently the output. Clicking on any devices adds an override until canceled to send sound to the selected override devices (as long as an override is active, the priority is ignored). If the overridden device becomes unavailable, the app goes back to whatever is available in highest priority order.
+
+We should also have an affordance to hide/not use/not show a sound device. If a device is currently not connected, an option should exist to forget it entirely.
+
+New devices that the app has never seen before should go into a queue and we should badge the menu bar icon to indicate that there's a new device that needs to be sorted into the priority order.
