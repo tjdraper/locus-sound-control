@@ -31,7 +31,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Live updates when devices appear and disappear, and when the default output changes by any means
    - Debounce the churn. Connecting or disconnecting a device produces several notifications, and a Bluetooth device can be listed for a moment before it is usable.
    - Waking from sleep and logging in are the same problem at a larger scale: devices re-enumerate over several seconds, displays before Bluetooth. Wait for the device list to stay unchanged for a moment before treating it as settled, so slice 3 resolves once against the finished list instead of switching through every intermediate state. Get this right here, in the read-only slice, where a mistake is visible in a log rather than audible.
-   - The menu bar icon shows the current output's kind, derived from transport type (see Decisions)
+   - The menu bar icon shows the current output's kind, derived from transport type (see Decisions). Slice 5 lets this be overridden per device.
    - Clicking the icon lists the output devices and marks the current one. System order for now; slice 3 gives it a real order.
    - The Sound Devices window lists what was found, so there is something to look at while getting the CoreAudio layer right
 
@@ -44,6 +44,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - When no listed device is connected, leave the system alone rather than forcing something
    - First launch seeds the priority list from the connected devices, current output first, and marks them all as seen
    - Storage: an ordered list of device entries in `UserDefaults`, each holding a set of UIDs rather than one (see Decisions). Slice 6 adds the matching that puts several UIDs in an entry and the UI to correct it; this slice only has to store the shape, so nothing needs migrating later.
+   - The entry also carries an optional assigned symbol name, which slice 5 gives a picker. Store it here for the same reason as the UID set: adding a field in slice 5 means migrating what is already written.
    - The menu now lists devices in priority order
 
 4. **Overrides**
@@ -58,6 +59,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 5. **Hidden and forgotten devices**
 
    - Hide a device: it stops being eligible for automatic selection and drops out of the menu. Virtual devices from other apps are the main reason this exists.
+   - Assign a device its own icon, from a curated grid of SF Symbols (see Decisions). It shows in the menu bar when that device is current, in the menu's device list, and in the Sound Devices rows. The list is where it earns most of its keep, since icons make a column of similar names scannable.
    - Hidden devices stay in the Sound Devices window in their own area, and can be unhidden
    - Forget a device that is not currently connected: its record is deleted. If it ever reconnects it arrives as a new device again.
    - Forget is only offered for disconnected devices, since forgetting a connected one would immediately re-add it
@@ -77,7 +79,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
    Two Macs that move between the same docks, displays and headphones should not have to be taught the same order twice.
 
-   - The priority order, the hidden flag, and whether a device has been sorted all sync through iCloud key-value storage
+   - The priority order, the hidden flag, the assigned icon, and whether a device has been sorted all sync through iCloud key-value storage
    - Forgetting a device syncs too. If the other Mac is offline and has that device connected, it comes back there as a new device, which is self-correcting rather than wrong.
    - The active override never syncs. It is about what you are doing on that Mac right now.
    - Device equivalence is handled by slice 6's matching and merging. This slice syncs the result, so a merge made on one Mac holds on the other.
@@ -106,7 +108,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
 10. **Polish and first release**
 
-   - App icon and a custom menu bar icon set, replacing the SF Symbols. Each has to keep working with the badge drawn over it.
+   - App icon. The menu bar icons stay SF Symbols: slice 5 lets the user pick from a curated set of them, so replacing them with drawn artwork would mean drawing the whole set. Custom artwork for the default symbol alone is still on the table, and would have to keep working with the badge drawn over it.
    - Website download page, v1
    - Windows open centered on the primary display the first time and then remember where they were put. `NSWindow.center()` runs before SwiftUI has sized the window, so it lands off center; locus-launcher has the workaround.
    - Decide whether the menu bar icon can be hidden. macOS's own "Allow in the Menu Bar" covers hiding it, but this app's only affordance for setting an override is that menu, so hiding it removes a feature rather than just an indicator.
@@ -160,9 +162,21 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
 - **Reading the device history needs no developer tools.** `/Library/Preferences/Audio/com.apple.audio.SystemSettings.plist` is world-readable and `plutil` is stock, so the history script runs on a Mac that has never had Xcode or the Command Line Tools on it. The Swift dump shows more per device — model UID, manufacturer, which device is current — but only covers what is attached right now, and needs the Swift compiler. Use the history script for comparing two Macs and the Swift one for looking at a live setup.
 
-- **The order is last-writer-wins; per-device flags merge.** An ordered list cannot be merged sensibly. A drag touches many positions at once, so per-position keys would still produce interleavings nobody chose, which is worse than losing a reorder. The whole order is one value with a timestamp, and reordering is rare and deliberate enough that redoing it costs seconds. The per-device flags — hidden, sorted, forgotten — are independent, so each device gets its own key and edits on two Macs merge cleanly. This is the same split locus-launcher uses for hot keys.
+- **The order is last-writer-wins; per-device flags merge.** An ordered list cannot be merged sensibly. A drag touches many positions at once, so per-position keys would still produce interleavings nobody chose, which is worse than losing a reorder. The whole order is one value with a timestamp, and reordering is rare and deliberate enough that redoing it costs seconds. The per-device flags — hidden, sorted, forgotten, assigned icon — are independent, so each device gets its own key and edits on two Macs merge cleanly. The assigned icon needs no machinery of its own for this reason; it is one more key per device, and a merge in slice 6 resolves two assignments the same last-writer way. This is the same split locus-launcher uses for hot keys.
 
-- **The menu bar icon is a heuristic.** Transport type gives a coarse kind — built-in, USB, Bluetooth, HDMI or DisplayPort, AirPlay, virtual, aggregate — and that drives the icon. macOS does not reliably expose the specific model, so telling AirPods Pro from AirPods Max means matching on the name, which breaks in other languages and on renamed devices. Fall back to a generic speaker icon rather than guessing wrong.
+- **The menu bar icon is a heuristic the user can overrule.** Transport type gives a coarse kind — built-in, USB, Bluetooth, HDMI or DisplayPort, AirPlay, virtual, aggregate — and that drives the icon. macOS does not reliably expose the specific model, so telling AirPods Pro from AirPods Max means matching on the name, which breaks in other languages and on renamed devices. Where transport says nothing useful — USB, aggregate, unknown — use a generic speaker rather than guessing. The heuristic is right for five of the six devices in the dump on first launch, which is why it stays the default rather than being replaced by a flat generic speaker; slice 5's per-device assignment is how the misses get fixed, and a Bluetooth speaker showing headphones until then is the accepted cost.
+
+- **Assigned icons come from a curated set, not all of SF Symbols.** Twenty-two symbols in a grid, one screen, no search. The symbol has to read as a flat silhouette at 18pt, and almost none of the six thousand mean anything for an audio device. A stored symbol name is a string that `NSImage(systemSymbolName:)` can fail to resolve if Apple renames or drops one, so an unresolved name falls back to the generic speaker rather than leaving the menu bar empty. The set, chosen by rendering every candidate at 18pt and reading it at size:
+
+  - speakers: `hifispeaker` (the default), `hifispeaker.2`, `speaker.wave.2`, `speaker.wave.3`
+  - worn: `headphones`, `airpods.max`, `airpods.pro`, `airpods`, `hearingdevice.ear`
+  - room: `homepod`, `tv`, `appletv`
+  - screens and Macs: `display`, `laptopcomputer`, `desktopcomputer`
+  - other: `car`, `waveform`, `airplayaudio`, `dot.radiowaves.left.and.right`, `cable.connector.horizontal`, `music.note`, `pianokeys`
+
+- **The curated set is outline-only, and excludes the hierarchical symbols.** Mixing `.fill` and outline variants in one grid reads as a mistake, so the set holds one style. Separately, `homepod` and the Beats symbols draw their main shape as a light grey stroke, which flattens to something visibly fainter than its neighbours in a template image. `homepod` is kept because it is the only smart-speaker glyph; the Beats ones are dropped, as are the bud variants that are indistinguishable from `airpods.pro` at 18pt. Note that `airpods.max` and `airpodsmax` are two spellings of one glyph, as are `airpods.pro` and `airpodspro` — store the dotted form.
+
+- **The badge does not constrain which symbol is drawn.** `MenuBarIcon` punches clear space around the badge before filling it, so the badge reads as separate over any glyph. It costs a corner of whatever symbol is underneath, which is why the corner is fixed rather than chosen per symbol.
 
 - **Other audio software can be doing the same job.** SoundSource, and anything else that switches the default device, will fight this app: each change it makes is adopted as an override here, and whatever it does in response is adopted again. There is no reliable way to tell another app's writes from a user's, because they are the same write. Do not try to detect it. If both run the user sees it immediately, so say so in the read-me and leave it there.
 
