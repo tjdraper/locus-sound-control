@@ -2,5 +2,16 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>Locus Sound Control</title>
+        <item>
+            <title>2026.0.1</title>
+            <pubDate>Sun, 20 Sep 2026 16:02:54 -0500</pubDate>
+            <link>https://github.com/tjdraper/locus-sound-control</link>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>2026.0.1</sparkle:version>
+            <sparkle:shortVersionString>2026.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://tjdraper.github.io/locus-sound-control/LocusSoundControl-2026.0.1.md</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/tjdraper/locus-sound-control/releases/download/v2026.0.1/LocusSoundControl-2026.0.1.zip" length="2480639" type="application/octet-stream" sparkle:edSignature="lLMwG6GlBsED+rKDtBYobOjJk22ifG/igbVe4Mz5ylc5C/FX0ifxmD2qea4+oQTkCNbstlVJ7GZ4JNIfhBShBw=="/>
+        </item>
     </channel>
 </rss>
