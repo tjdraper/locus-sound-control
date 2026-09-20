@@ -50,4 +50,4 @@ This app shares Locus Launcher's key. Sparkle's own guidance is one key per publ
 
 - **Release notes** are required. Write `docs/LocusSoundControl-<version>.md` before running the script. That one file becomes the Sparkle update description and the GitHub release body.
 - **Publishing** is not automated. The script stops with the artifacts built and prints the `gh release create` and `git` commands, so nothing goes public without you running it.
-- **The beta channel** has no UI yet. `release.sh` can ship a beta from slice 1, but nothing in the app asks for the channel until slice 8, so every build sees releases only.
+- **The beta channel** works, but has no UI yet. Opt in with `defaults write com.buzzingpixel.LocusSoundControl ReceiveBetaUpdates -bool YES`; the Settings toggle is slice 8. A build that is itself a beta receives the next beta without opting in.

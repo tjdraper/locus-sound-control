@@ -5,15 +5,32 @@ import SwiftUI
 /// while a check is already running.
 @Observable
 final class UpdateController {
+    private let updaterDelegate = UpdaterDelegate()
     private let updaterController: SPUStandardUpdaterController
     private var readinessObservation: NSKeyValueObservation?
 
     private(set) var canCheckForUpdates = false
 
+    var receivesBetaUpdates: Bool {
+        get {
+            access(keyPath: \.receivesBetaUpdates)
+            return UpdateChannelPreference().receivesBetaUpdates
+        }
+        set {
+            withMutation(keyPath: \.receivesBetaUpdates) {
+                UpdateChannelPreference().receivesBetaUpdates = newValue
+            }
+        }
+    }
+
+    var isRunningBeta: Bool {
+        UpdateChannelPreference().isRunningBeta
+    }
+
     init() {
         updaterController = SPUStandardUpdaterController(
             startingUpdater: false,
-            updaterDelegate: nil,
+            updaterDelegate: updaterDelegate,
             userDriverDelegate: nil
         )
         readinessObservation = updaterController.updater.observe(
@@ -36,5 +53,13 @@ final class UpdateController {
     func checkForUpdates() {
         AppActivation.bringToFront()
         updaterController.checkForUpdates(nil)
+    }
+}
+
+private final class UpdaterDelegate: NSObject, SPUUpdaterDelegate {
+    /// Beta items in the appcast are only offered to updaters that name the channel here.
+    /// Everyone else sees the default channel alone.
+    nonisolated func allowedChannels(for _: SPUUpdater) -> Set<String> {
+        UpdateChannelPreference().allowedChannels
     }
 }
