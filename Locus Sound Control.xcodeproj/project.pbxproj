@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		324EA471305F81D100DDFE7D /* Locus Sound Control.icon in Resources */ = {isa = PBXBuildFile; fileRef = 324EA470305F81D100DDFE7D /* Locus Sound Control.icon */; };
+		324EA485305F81D100DDFE7D /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 324EA484305F81D100DDFE7D /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,13 +27,26 @@
 		324EA470305F81D100DDFE7D /* Locus Sound Control.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Locus Sound Control.icon"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		324EA488305F81D100DDFE7D /* Exceptions for "LocusSoundControl" folder in "Locus Sound Control" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SupportingFiles/Info.plist,
+			);
+			target = 324EA43D305F81D000DDFE7D /* Locus Sound Control */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		324EA440305F81D000DDFE7D /* Locus Sound Control */ = {
+		324EA440305F81D000DDFE7D /* LocusSoundControl */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				324EA488305F81D100DDFE7D /* Exceptions for "LocusSoundControl" folder in "Locus Sound Control" target */,
+			);
 			path = LocusSoundControl;
 			sourceTree = "<group>";
 		};
-		324EA44E305F81D100DDFE7D /* Locus Sound Control Tests */ = {
+		324EA44E305F81D100DDFE7D /* LocusSoundControlTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = LocusSoundControlTests;
 			sourceTree = "<group>";
@@ -43,6 +57,7 @@
 		324EA43B305F81D000DDFE7D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				324EA485305F81D100DDFE7D /* Sparkle in Frameworks */,
 			);
 		};
 		324EA448305F81D100DDFE7D /* Frameworks */ = {
@@ -57,8 +72,8 @@
 			isa = PBXGroup;
 			children = (
 				324EA470305F81D100DDFE7D /* Locus Sound Control.icon */,
-				324EA440305F81D000DDFE7D /* Locus Sound Control */,
-				324EA44E305F81D100DDFE7D /* Locus Sound Control Tests */,
+				324EA440305F81D000DDFE7D /* LocusSoundControl */,
+				324EA44E305F81D100DDFE7D /* LocusSoundControlTests */,
 				324EA43F305F81D000DDFE7D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,10 +100,16 @@
 			);
 			buildRules = (
 			);
+			dependencies = (
+				324EA486305F81D100DDFE7D /* PBXTargetDependency */,
+			);
 			fileSystemSynchronizedGroups = (
-				324EA440305F81D000DDFE7D /* Locus Sound Control */,
+				324EA440305F81D000DDFE7D /* LocusSoundControl */,
 			);
 			name = "Locus Sound Control";
+			packageProductDependencies = (
+				324EA484305F81D100DDFE7D /* Sparkle */,
+			);
 			productName = "Locus Sound Control";
 			productReference = 324EA43E305F81D000DDFE7D /* Locus Sound Control.app */;
 			productType = "com.apple.product-type.application";
@@ -105,9 +126,10 @@
 			);
 			dependencies = (
 				324EA44D305F81D100DDFE7D /* PBXTargetDependency */,
+				324EA487305F81D100DDFE7D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				324EA44E305F81D100DDFE7D /* Locus Sound Control Tests */,
+				324EA44E305F81D100DDFE7D /* LocusSoundControlTests */,
 			);
 			name = "Locus Sound Control Tests";
 			productName = "Locus Sound Control Tests";
@@ -141,6 +163,10 @@
 			);
 			mainGroup = 324EA435305F81D000DDFE7D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				324EA480305F81D100DDFE7D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
+				324EA481305F81D100DDFE7D /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 324EA43F305F81D000DDFE7D /* Products */;
 			projectDirPath = "";
@@ -184,6 +210,14 @@
 			isa = PBXTargetDependency;
 			target = 324EA43D305F81D000DDFE7D /* Locus Sound Control */;
 			targetProxy = 324EA44C305F81D100DDFE7D /* PBXContainerItemProxy */;
+		};
+		324EA486305F81D100DDFE7D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 324EA482305F81D100DDFE7D /* SwiftLintBuildToolPlugin */;
+		};
+		324EA487305F81D100DDFE7D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 324EA483305F81D100DDFE7D /* SwiftLintBuildToolPlugin */;
 		};
 /* End PBXTargetDependency section */
 
@@ -320,7 +354,9 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				CODE_SIGN_ENTITLEMENTS = LocusSoundControl/SupportingFiles/LocusSoundControl.entitlements;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LocusSoundControl/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 TJ Draper. MIT License.";
@@ -352,7 +388,9 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				CODE_SIGN_ENTITLEMENTS = LocusSoundControl/SupportingFiles/LocusSoundControl.entitlements;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LocusSoundControl/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 TJ Draper. MIT License.";
@@ -440,6 +478,43 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		324EA480305F81D100DDFE7D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SimplyDanny/SwiftLintPlugins";
+			requirement = {
+				kind = exactVersion;
+				version = 0.63.2;
+			};
+		};
+		324EA481305F81D100DDFE7D /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		324EA482305F81D100DDFE7D /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 324EA480305F81D100DDFE7D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		324EA483305F81D100DDFE7D /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 324EA480305F81D100DDFE7D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		324EA484305F81D100DDFE7D /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 324EA481305F81D100DDFE7D /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 324EA436305F81D000DDFE7D /* Project object */;
 	validationLevel = 1;

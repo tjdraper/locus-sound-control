@@ -219,7 +219,7 @@ The GitHub repo is public at `tjdraper/locus-sound-control`, and it hosts the re
 
 ## Useful from locus-launcher
 
-- The whole of `Scripts/` ports over, as detailed in slice 1. The Sparkle key does not port; generate a new one.
+- The whole of `Scripts/` ports over, as detailed in slice 1. The Sparkle key ports as it is: Sparkle's own guidance is one signing key per publisher rather than per app, and `generate_keys` reuses the existing one.
 - `Plans/ReleaseSetupChecklist.md` is the checklist for the account-holder steps, including the provisioning profile, which this app does need after all.
 - `.swiftlint.yml`, the Architecture docs, the `.icon` workflow, and the `MenuBarIcon` badge drawing.
 - The launch-at-login, Sparkle gentle reminders, and iCloud key-value storage work is close enough to copy. The hotkey work is not needed here.
