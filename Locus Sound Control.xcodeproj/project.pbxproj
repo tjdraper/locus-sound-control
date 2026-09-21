@@ -38,8 +38,8 @@
 		324EA489305F81D100DDFE7D /* Exceptions for "LocusSoundControl" folder in "Locus Sound Control Tests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				DeviceInventory/AudioDeviceTransport.swift,
 				DeviceInventory/AppleAccessorySymbol.swift,
+				DeviceInventory/AudioDeviceTransport.swift,
 				DeviceInventory/AudioOutputDevice.swift,
 				DeviceInventory/BluetoothAudioKind.swift,
 				DeviceInventory/OutputDeviceSymbol.swift,
@@ -371,8 +371,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LocusSoundControl/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Locus Sound Control checks whether a connected Bluetooth device is headphones, a speaker or car audio, so it can show the right icon for it. It never scans for or connects to devices.";
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Locus Sound Control checks whether a connected Bluetooth device is headphones, a speaker or car audio, so it can show the right icon for it. It never scans for or connects to devices.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 TJ Draper. MIT License.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -406,8 +406,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LocusSoundControl/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Locus Sound Control checks whether a connected Bluetooth device is headphones, a speaker or car audio, so it can show the right icon for it. It never scans for or connects to devices.";
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Locus Sound Control checks whether a connected Bluetooth device is headphones, a speaker or car audio, so it can show the right icon for it. It never scans for or connects to devices.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 TJ Draper. MIT License.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

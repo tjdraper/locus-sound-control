@@ -114,7 +114,6 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
    - App icon. The menu bar icons stay SF Symbols: slice 5 lets the user pick from a curated set of them, so replacing them with drawn artwork would mean drawing the whole set. Custom artwork for the default symbol alone is still on the table, and would have to keep working with the badge drawn over it.
    - Website download page, v1
-   - Windows open centered on the primary display the first time and then remember where they were put. `NSWindow.center()` runs before SwiftUI has sized the window, so it lands off center; locus-launcher has the workaround.
    - Decide whether the menu bar icon can be hidden. macOS's own "Allow in the Menu Bar" covers hiding it, but this app's only affordance for setting an override is that menu, so hiding it removes a feature rather than just an indicator.
    - Remove the setup checklist row from Settings if it was added there. The menu still opens it.
 
@@ -234,6 +233,12 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 - **A device that is not connected is dimmed in place, not moved.** The priority list is one order, so lifting absent devices into their own area would show an order different from the one stored, and leaving them out of the window altogether would hide the thing "Forget" acts on. They stay where they are, with the row and its icon dimmed. Hidden devices and the new device queue get areas of their own because they are genuinely separate lists; a disconnected device is an ordinary member of the priority list that happens not to be here right now.
 
   The right-hand label says the state in words — "Current Output" for the one playing, nothing for a device that is connected, "Not Connected" for the rest — so the difference never rests on dimming alone.
+
+- **Every window centers on the primary display the first time and is where you left it after that.** This binds any window the app ever grows, not just the two it has now. A window that reopens where it was is the difference between a tool and something that has to be dragged back into place each time, and the cost is a line at the point the window is built — locus-launcher's `RememberedWindowPlacement(autosaveName:)`, ported with one fix.
+
+  Applied as each window is built rather than swept up at the end, since a window that ships without it teaches people where it lands and then moves.
+
+  The fix: a window built from an `NSHostingController` measures 1x32 until something asks its content for a size, so `NSWindow.center()` puts the corner where the middle should be. locus-launcher reaches for `NSWindow.layoutIfNeeded()`, which does not settle it, and neither does `layoutSubtreeIfNeeded()` on the content view. Reading `fittingSize` does. Measured here on a 1512-wide display: a 520-wide window landed at x=755, the screen's midpoint, instead of 496. **locus-launcher has the same bug and its windows are off center on first open.**
 
 - **Two windows, not one.** Sound Devices is the main window and is the whole feature: priority, hidden devices, the new device queue. Settings holds app preferences — launch at login, updates — and stays short. Both are plain AppKit windows hosting SwiftUI views, not SwiftUI's `Settings` scene, which can only be opened from inside a SwiftUI view.
 

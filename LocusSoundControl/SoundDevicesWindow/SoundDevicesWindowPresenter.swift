@@ -23,7 +23,7 @@ final class SoundDevicesWindowPresenter {
         window.title = "Sound Devices"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.isReleasedWhenClosed = false
-        window.center()
+        RememberedWindowPlacement(autosaveName: "SoundDevices").apply(to: window)
         return window
     }
 }
