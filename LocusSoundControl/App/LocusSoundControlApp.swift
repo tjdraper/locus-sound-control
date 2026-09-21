@@ -1,16 +1,13 @@
-import SwiftUI
+import AppKit
 
 @main
-struct LocusSoundControlApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+enum LocusSoundControlApp {
+    /// `NSApplication.delegate` does not retain, so the delegate is held here instead.
+    private static let delegate = AppDelegate()
 
-    var body: some Scene {
-        MenuBarExtra("Locus Sound Control", systemImage: "hifispeaker") {
-            MenuBarMenu(updates: appDelegate.updates)
-        }
-
-        Window("Sound Devices", id: SoundDevicesWindow.id) {
-            SoundDevicesWindow()
-        }
+    static func main() {
+        let application = NSApplication.shared
+        application.delegate = delegate
+        application.run()
     }
 }
