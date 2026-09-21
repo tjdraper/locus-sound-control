@@ -14,7 +14,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - A "Sound Devices" window with nothing in it yet, opened from the menu
    - Developer ID signing and hardened runtime from day one. No App Sandbox (see Decisions).
    - `Scripts/release.sh`, ported from locus-launcher: archive, export a Developer ID build, notarize, staple, re-zip with `ditto -c -k --keepParent`, append to the appcast, then stop and print the `gh release create` and `git` commands. It never publishes on its own. Version shape picks the channel: `YYYY.N` is a release, `YYYY.N.B` is a beta. Release notes at `docs/LocusSoundControl-<version>.md` are required.
-   - `Scripts/install-test-build.sh`, also ported: notarizes and staples the working tree as it is, without bumping the version or touching the appcast, quits the copy in `/Applications`, trashes it, installs the new build in its place and opens it. It matches the running copy by path so a Debug build from Xcode is left alone. This is how anything that only behaves correctly in a real installed, signed app gets tested — launch at login, the Sparkle update flow, Gatekeeper, and the move-to-Applications prompt. Locus Launcher needed it for Accessibility access; this app needs no permissions, but the other reasons still apply.
+   - `Scripts/install-test-build.sh`, also ported: notarizes and staples the working tree as it is, without bumping the version or touching the appcast, quits the copy in `/Applications`, trashes it, installs the new build in its place and opens it. It matches the running copy by path so a Debug build from Xcode is left alone. This is how anything that only behaves correctly in a real installed, signed app gets tested — launch at login, the Sparkle update flow, Gatekeeper, and the move-to-Applications prompt. Locus Launcher needed it for Accessibility access; this app needs Bluetooth, which has the same problem — a build launched from a terminal inherits the terminal's grants and hides the failure.
    - `Scripts/ExportOptions.plist` and `Scripts/sparkle-tools.sh` port across too, and `Scripts/README.md` gets rewritten for this app. Change the app name, bundle identifier, artifact name, GitHub repo, feed URL and notary profile (`LocusSoundControl`).
    - A Developer ID provisioning profile is needed, for the same reason locus-launcher needs one: slice 7 syncs through iCloud key-value storage, which is an entitlement a Developer ID build can only carry with a profile. `xcodebuild` on the command line cannot create one when it has no access to the Xcode account, so let Xcode create it once — Product → Archive, then Distribute App → Direct Distribution — and the export in `release.sh` finds it afterwards. Do this in slice 1 even though nothing uses the entitlement yet, so the release chain is proven in its final shape.
    - Sparkle, sharing Locus Launcher's signing key, with the feed at `https://tjdraper.github.io/locus-sound-control/appcast.xml`
@@ -47,6 +47,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Storage: an ordered list of device entries in `UserDefaults`, each holding a set of UIDs rather than one (see Decisions). Slice 6 adds the matching that puts several UIDs in an entry and the UI to correct it; this slice only has to store the shape, so nothing needs migrating later.
    - The entry also carries an optional assigned symbol name, which slice 5 gives a picker. Store it here for the same reason as the UID set: adding a field in slice 5 means migrating what is already written.
    - The menu now lists devices in priority order
+   - Devices that are not connected appear in the Sound Devices window for the first time here, since this is the slice that starts remembering them. They stay in place in the order, dimmed (see Decisions).
 
 4. **Overrides**
 
@@ -92,6 +93,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
    - A Settings window separate from Sound Devices (see Decisions)
    - Launch at login (`SMAppService`)
+   - Bluetooth access: what it is granted as, what it is for, and a way to System Settings when it has been denied. This is the only place someone who said no can find out why a Bluetooth speaker shows a headphones icon.
    - Sync on/off (slice 7), with a line naming what it carries and what it does not
    - Beta updates toggle, bound to the `ReceiveBetaUpdates` default slice 1 already reads, with a line saying betas ship more often and may break. Also the prompt a Mac gets on its first full release after running betas, asking whether to stay on them.
    - Sparkle gentle reminders (https://sparkle-project.org/documentation/gentle-reminders). By default a scheduled check that finds an update throws Sparkle's window to the front at an arbitrary moment, which is exactly the interruption this app exists to avoid. Show a quiet sign instead and open the window when it is clicked. Sparkle logs a warning at launch until this is done.
@@ -104,6 +106,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Move to `/Applications` if needed
    - Confirm the seeded priority order, since the seed is a guess
    - Launch at login
+   - Ask for Bluetooth access here, which is where a permission request is expected and where it costs nothing to explain first (see Decisions). Say what it buys — telling a Bluetooth speaker from headphones — and that it can be skipped.
    - Ask about automatic update checks here. Sparkle otherwise raises its own prompt on the second launch, which for a login-item menu bar app lands at a random moment. Take it over with `SPUUpdaterDelegate.updaterShouldPromptForPermissionToCheckForUpdates`.
    - Each step reflects real current state, so a change made in System Settings updates the wizard
 
@@ -172,7 +175,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
      For Bluetooth there is no table to keep, because macOS already has one. Every accessory it knows is declared as a uniform type tagged with the accessory's Bluetooth vendor and product id, so `UTType(tag:tagClass:conformingTo:)` with the `public.bluetooth-vendor-product-id` tag class turns `2014 4c` into `com.apple.airpods-pro-gen2`. Apple files the range in three lines — `com.apple.airpods`, `com.apple.airpods-pro` and `com.apple.airpods-max` — and every model conforms to exactly one of them, so conformance picks the symbol and a model that ships with a later macOS is recognized with no change here. An id outside the catalog comes back as a type invented on the spot rather than as nothing, so a dynamic type is treated as no answer. The Beats range is deliberately left to step 2: Apple files the Beats Pill, a speaker, under `com.apple.beats-headphones`, and the class of device gets it right.
 
      USB has no equivalent tag class, so those are listed one at a time, matched on the tail of the identifier so that renaming the device cannot break the match. The Studio Display's `:05AC:1118` is the only entry, and each one has to be read off a real device.
-  2. **The Bluetooth class of device**, for anything Bluetooth the table does not name. Every Bluetooth device advertises one, so this separates loudspeakers, car kits and headphones for every maker at once with no table to keep. `IOBluetoothDevice.pairedDevices()` reads it in well under a millisecond and asks for no permission, and a Bluetooth output device's UID starts with the address that keys it. Hands-free is deliberately unmapped: it covers both car kits and speakerphones, so it says no more than the transport already did.
+  2. **The Bluetooth class of device**, for anything Bluetooth the table does not name. Every Bluetooth device advertises one, so this separates loudspeakers, car kits and headphones for every maker at once with no table to keep. `IOBluetoothDevice.pairedDevices()` reads it in well under a millisecond, and a Bluetooth output device's UID starts with the address that keys it. It is the one thing in the app that needs a permission (see Decisions). Hands-free is deliberately unmapped: it covers both car kits and speakerphones, so it says no more than the transport already did.
   3. **The transport**, which gives a coarse kind — built-in, Bluetooth, HDMI or DisplayPort, AirPlay, virtual. Where it says nothing useful — USB, Thunderbolt, aggregate, unknown — a generic speaker beats a guess.
 
   All three are still guesses, and slice 5's per-device assignment is how a miss gets fixed for good.
@@ -185,7 +188,20 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
   - screens and Macs: `display`, `laptopcomputer`, `desktopcomputer`
   - other: `car`, `waveform`, `airplayaudio`, `dot.radiowaves.left.and.right`, `cable.connector.horizontal`, `music.note`, `pianokeys`
 
-- **The curated set is outline-only, and excludes the hierarchical symbols.** Mixing `.fill` and outline variants in one grid reads as a mistake, so the set holds one style. Separately, `homepod` and the Beats symbols draw their main shape as a light grey stroke, which flattens to something visibly fainter than its neighbours in a template image. `homepod` is kept because it is the only smart-speaker glyph; the Beats ones are dropped, as are the bud variants that are indistinguishable from `airpods.pro` at 18pt. Note that `airpods.max` and `airpodsmax` are two spellings of one glyph, as are `airpods.pro` and `airpodspro` — store the dotted form.
+- **The curated set is outline-only, and excludes the hierarchical symbols.** Mixing `.fill` and outline variants in one grid reads as a mistake, so the set holds one style. Separately, `homepod` draws its main shape as a light grey stroke, which flattens to something visibly fainter than its neighbours in a template image; it is kept because it is the only smart-speaker glyph. The bud variants that are indistinguishable from `airpods.pro` at 18pt are dropped. Note that `airpods.max` and `airpodsmax` are two spellings of one glyph, as are `airpods.pro` and `airpodspro` — store the dotted form.
+
+- **"The Beats symbols are too faint" was true of exactly one of them.** They were all dropped on that reasoning, and re-rendering them with `Scripts/render-sf-symbols.swift` showed it holds only for `beats.headphones`, whose ear cups really are a light grey stroke. `beats.powerbeatspro`, `beats.powerbeats3`, `beats.powerbeats`, `beats.fitpro`, `beats.studiobuds`, `beats.solobuds`, `beats.pill` and `beats.earphones` are solid at 18pt and each says something a plain `headphones` cannot. So the automatic icon uses them, and only the lines Apple files under its `com.apple.beats-headphones` catch-all — Solo, Studio, Beats 360 — fall back to `headphones`.
+
+  This leaves the automatic icon able to pick symbols that slice 5's grid does not offer, so a user who changes one cannot choose it again. Slice 5 answers that with an "Automatic" choice in the picker rather than by growing the grid, which would mean adding every Beats glyph to a set chosen to be one screen.
+
+- **macOS names a symbol for each accessory, and it is not good enough to use.** Control Center's output list draws the same glyphs this app does, and the reason is that the accessory catalog carries `UTTypeIcons.UTTypeSymbolName` next to the vendor and product id — `com.apple.power-beats-pro` names `beats.powerbeatspro` outright. It was worth checking whether to read that instead of choosing symbols here. It is not:
+
+  - `UTType` exposes `tags` but not `UTTypeIcons`, so there is no public way in. It would mean parsing `CoreTypes.bundle`'s own plists across its fourteen sub-bundles, and giving up the public lookup that makes the rest of this work.
+  - It is empty exactly where it matters. `com.apple.airpods-pro-gen2` — the AirPods Pro most people own — names no symbol at all, nor do AirPods Max 2024, AirPods Max 2, the USB-C AirPods Pro 2, Beats Solo 4 or Beats Fit Pro 2025. Matching on the parent type covers every one of them.
+  - `com.apple.power-beats-pro-gen2` names `40262ECA475D4CCF9722443885EC78D8`, a private unnamed asset rather than a symbol.
+  - It mixes styles, naming `beats.pill.fill` where the rest are outlines.
+
+  The generation-specific glyphs it points at — `airpods.pro.gen1`, `airpods.pro.gen3`, `airpods.gen3`, `airpods.gen4` — are real and do resolve. They are not used, because the models that name none would sit next to them looking generic, which is worse than every AirPods line looking alike.
 
 - **The badge does not constrain which symbol is drawn.** `MenuBarIcon` punches clear space around the badge before filling it, so the badge reads as separate over any glyph. It costs a corner of whatever symbol is underneath, which is why the corner is fixed rather than chosen per symbol.
 
@@ -205,7 +221,19 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
 - **No App Sandbox.** Matches locus-launcher. Signing and notarization still work, and App Store distribution is not a goal, so there is no need to establish whether HAL default-device writes survive the sandbox.
 
-- **No permissions needed.** Reading and setting the default output device needs no user grant. There is no global hotkey, so no Accessibility access either.
+- **One permission, asked for where it is expected.** Reading and setting the default output device needs no user grant, and there is no global hotkey, so no Accessibility access either. Bluetooth is the exception: the class of device that tells a Bluetooth speaker from headphones is privacy-sensitive, so `NSBluetoothAlwaysUsageDescription` is required and macOS kills the app outright without it.
+
+  It is asked for in slice 9's setup checklist, which is where a permission request is expected, and where there is room to say what it buys before the system prompt appears. A prompt that arrives unannounced weeks later, at the moment someone puts headphones on, is the arbitrary interruption this app exists to remove.
+
+  The checklist cannot be the only route, because only fresh installs see it and the step can be skipped. So the request is also deferred to the point of use: the paired devices are read only when a Bluetooth device is actually among the outputs, which means a Mac that never plays through one is never asked at all, and an upgrade is asked the first time one connects. The wording says what is read and that the app never scans for or connects to anything.
+
+  Being denied has to be visible, or the only symptom is a Bluetooth speaker wearing a headphones icon with nothing to explain it. Both the checklist and Settings show the current state and offer the way to System Settings, and the Sound Devices window says so in one quiet line when access is denied and a Bluetooth device is listed — the place where the wrong icon is actually being looked at.
+
+  This only shows up in a real installed build. A build launched from a terminal is attributed to the terminal's own permissions, so it will appear to work while the same code crashes on a double-click. Test anything touching a permission with `Scripts/install-test-build.sh`.
+
+- **A device that is not connected is dimmed in place, not moved.** The priority list is one order, so lifting absent devices into their own area would show an order different from the one stored, and leaving them out of the window altogether would hide the thing "Forget" acts on. They stay where they are, with the row and its icon dimmed. Hidden devices and the new device queue get areas of their own because they are genuinely separate lists; a disconnected device is an ordinary member of the priority list that happens not to be here right now.
+
+  The right-hand label says the state in words — "Current Output" for the one playing, nothing for a device that is connected, "Not Connected" for the rest — so the difference never rests on dimming alone.
 
 - **Two windows, not one.** Sound Devices is the main window and is the whole feature: priority, hidden devices, the new device queue. Settings holds app preferences — launch at login, updates — and stays short. Both are plain AppKit windows hosting SwiftUI views, not SwiftUI's `Settings` scene, which can only be opened from inside a SwiftUI view.
 
