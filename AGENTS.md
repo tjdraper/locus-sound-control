@@ -105,6 +105,8 @@ The Xcode `BuildProject` MCP tool builds whichever scheme and destination Xcode 
 
 Check the build log at warning severity and fix any warnings (including SwiftLint violations) before declaring work done.
 
+A clean build is not evidence that anything works. Launching the app and looking at it is, with one exception that has already cost a release: **anything touching a permission has to be tested with `Scripts/install-test-build.sh`.** macOS attributes a permission to the process responsible for launching the app, so a build started from a terminal — `open`, or running the binary directly — inherits the terminal's own grants and appears to work. The same code double-clicked in Finder is attributed to itself, and macOS kills it outright when a usage description is missing. It is killed, not prompted, so there is nothing on screen to notice; the evidence is a crash report in `~/Library/Logs/DiagnosticReports`.
+
 ## Tests
 
 `Locus Sound Control Tests` does not run inside the app, because a hosted test run would launch it, start Sparkle and let it take over the system's sound output. It compiles only the app files it tests. To put another app file under test, add it to the "Locus Sound Control Tests" target membership (the membership exception set on the `LocusSoundControl` folder in `project.pbxproj`). Only pure, `nonisolated` code with no dependencies on the rest of the app belongs there.
