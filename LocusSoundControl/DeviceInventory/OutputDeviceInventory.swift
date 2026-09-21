@@ -1,5 +1,6 @@
 import AppKit
 import CoreAudio
+import OSLog
 
 /// The connected output devices and which one the system is currently playing through, kept up to
 /// date as devices come and go.
@@ -75,7 +76,20 @@ final class OutputDeviceInventory {
             case .wake: .seconds(2)
             }
         }
+
+        var name: String {
+            switch self {
+            case .connect: "connect"
+            case .wake: "wake"
+            }
+        }
     }
+
+    /// Slice 3 switches the output device on what settles here, so when it picks the wrong one
+    /// the question is always what this saw and when. Rare events only — a device coming or
+    /// going, and waking — so it stays readable. Device names are left out: they carry people's
+    /// names, and a count answers the question just as well.
+    private static let log = Logger(subsystem: "com.buzzingpixel.LocusSoundControl", category: "DeviceInventory")
 
     /// A list that never holds still is published anyway rather than never.
     private static let settleLimit = Duration.seconds(15)
@@ -90,6 +104,7 @@ final class OutputDeviceInventory {
     }
 
     private func wokeUp() {
+        Self.log.info("Woke from sleep, so the device list settles at the wider pace from here")
         wakeEndsAt = ContinuousClock.now.advanced(by: Self.wakeLasts)
         deviceListChanged()
     }
@@ -102,7 +117,16 @@ final class OutputDeviceInventory {
             guard let self, !Task.isCancelled else { return }
 
             // Assigning an equal list would still invalidate every view observing it.
-            if devices != settled { devices = settled }
+            // Whether it changed, not just that it settled: a wake produces several settles that
+            // publish nothing, and a log that cannot tell them apart is a trap for slice 3.
+            let changed = devices != settled
+            if changed { devices = settled }
+            Self.log.info(
+                """
+                Device list settled at the \(pace.name, privacy: .public) pace: \
+                \(settled.count) outputs, \(changed ? "changed" : "unchanged", privacy: .public)
+                """
+            )
             currentOutputUID = OutputDeviceReader.currentOutputUID()
             isSettling = false
             settleTask = nil

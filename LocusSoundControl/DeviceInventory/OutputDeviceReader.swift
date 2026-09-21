@@ -7,9 +7,16 @@ nonisolated enum OutputDeviceReader {
     /// look like a device list change to `OutputDeviceInventory`.
     static func connectedOutputs() -> [AudioOutputDevice] {
         let builtInSpeakers = BuiltInSpeakerSymbol.name
-        let bluetooth = PairedBluetoothAudio()
-        return allDeviceIDs()
-            .filter { hasOutputBuffers($0) && !isHidden($0) }
+        let outputs = allDeviceIDs().filter { hasOutputBuffers($0) && !isHidden($0) }
+
+        // Reading the paired devices is what raises the Bluetooth permission prompt. Slice 9's
+        // setup checklist asks for it up front, but only a fresh install sees that, so this is
+        // the fallback: ask when there is a Bluetooth device to ask about, and never on a Mac
+        // that has none.
+        let anyBluetooth = outputs.contains { AudioDeviceTransport(rawTransport: transport($0)) == .bluetooth }
+        let bluetooth = anyBluetooth ? PairedBluetoothAudio() : nil
+
+        return outputs
             .compactMap { id -> AudioOutputDevice? in
                 // The UID is how a connected device is identified, so one without it is no use.
                 guard let uid = string(id, kAudioDevicePropertyDeviceUID) else { return nil }
@@ -24,7 +31,7 @@ nonisolated enum OutputDeviceReader {
                     symbolName: OutputDeviceSymbol.name(
                         for: transport,
                         modelUID: modelUID,
-                        bluetoothKind: bluetooth.kind(forDeviceUID: uid),
+                        bluetoothKind: bluetooth?.kind(forDeviceUID: uid),
                         builtInSpeakers: builtInSpeakers
                     )
                 )

@@ -126,13 +126,29 @@ struct OutputDeviceSymbolTests {
         #expect(symbol == expected)
     }
 
-    @Test
-    func beatsAreLeftToTheClassOfDeviceBecauseAppleFilesTheirSpeakersAsHeadphones() {
-        // Arrange
-        let beatsPill = "201a 4c" // a speaker Apple files under com.apple.beats-headphones
+    @Test(arguments: [
+        ("200b 4c", "beats.powerbeatspro"), // Powerbeats Pro
+        ("201d 4c", "beats.powerbeatspro"), // Powerbeats Pro 2, by conforming to the first
+        ("2003 4c", "beats.powerbeats3"), // Powerbeats 3
+        ("2012 4c", "beats.fitpro"), // Beats Fit Pro
+        ("202f 4c", "beats.fitpro"), // Beats Fit Pro 2025, by conforming to the first
+        ("2011 4c", "beats.studiobuds"), // Beats Studio Buds
+        ("2016 4c", "beats.studiobuds"), // Beats Studio Buds +, by conforming to the first
+        ("201a 4c", "beats.pill"), // a speaker Apple also files under beats-headphones
+    ])
+    func theBeatsLinesWithAReadableSymbolAreToldApart(modelUID: String, expected: String) {
+        // Arrange, Act
+        let symbol = AppleAccessorySymbol.name(forModelUID: modelUID)
 
-        // Act
-        let symbol = AppleAccessorySymbol.name(forModelUID: beatsPill)
+        // Assert
+        #expect(symbol == expected)
+    }
+
+    /// `beats.headphones` is too faint at menu bar size, so these fall through to a plain one.
+    @Test(arguments: ["2006 4c", "2017 4c", "2038 4c"]) // Beats, Beats Studio Pro, Beats 360
+    func theBeatsLinesWithNoReadableSymbolFallThrough(modelUID: String) {
+        // Arrange, Act
+        let symbol = AppleAccessorySymbol.name(forModelUID: modelUID)
 
         // Assert
         #expect(symbol == nil)

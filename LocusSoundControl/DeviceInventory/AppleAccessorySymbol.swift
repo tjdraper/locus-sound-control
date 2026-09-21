@@ -1,30 +1,42 @@
 import UniformTypeIdentifiers
 
-/// Tells AirPods, AirPods Pro and AirPods Max apart, from the model identifier CoreAudio reports.
+/// Names the exact Apple audio accessory a device is, from the model identifier CoreAudio reports.
 ///
 /// macOS declares every accessory it knows about as a uniform type carrying the accessory's
 /// Bluetooth vendor and product id as a tag, which makes this Apple's own catalog rather than a
-/// table of product ids kept by hand. A model that ships with a later macOS is recognized without
-/// a change here, because it arrives conforming to the same parent type.
+/// table of product ids kept by hand. Matching on the parent type rather than the exact one means
+/// a later generation is recognized without a change here: `com.apple.power-beats-pro-gen2`
+/// conforms to `com.apple.power-beats-pro`, and `com.apple.airpods-gen5` to `com.apple.airpods`.
 nonisolated enum AppleAccessorySymbol {
     static func name(forModelUID modelUID: String) -> String? {
         guard let accessory = accessory(forModelUID: modelUID) else { return nil }
-
-        // Apple files these as three separate lines rather than one with variants, and no
-        // AirPods Pro conforms to `com.apple.airpods`, so the order of these does not matter.
-        if let airPodsPro, accessory.conforms(to: airPodsPro) { return "airpods.pro" }
-        if let airPodsMax, accessory.conforms(to: airPodsMax) { return "airpods.max" }
-        if let airPods, accessory.conforms(to: airPods) { return "airpods" }
-
-        // The rest of what Apple names is the Beats range, which is left to the Bluetooth class
-        // of device: it separates their speakers from their headphones, and this cannot — Apple
-        // files the Beats Pill, a speaker, under `com.apple.beats-headphones`.
-        return nil
+        return symbolsByType.first { accessory.conforms(to: $0.type) }?.symbolName
     }
 
-    private static let airPods = UTType("com.apple.airpods")
-    private static let airPodsPro = UTType("com.apple.airpods-pro")
-    private static let airPodsMax = UTType("com.apple.airpods-max")
+    /// Ordered most specific first. Apple keeps a catch-all, `com.apple.beats-headphones`, that
+    /// several of these also conform to — the Beats Pill among them, which is a speaker.
+    ///
+    /// The lines Apple files only under that catch-all — Solo, Studio, Beats 360 — are left out,
+    /// so they fall through to the Bluetooth class of device and a plain `headphones`. The symbol
+    /// for them, `beats.headphones`, draws its ear cups as a light grey stroke that flattens to
+    /// something visibly fainter than its neighbours at menu bar size. The rest of the Beats
+    /// symbols were checked the same way, with `Scripts/render-sf-symbols.swift`, and hold up.
+    private static let symbolsByType: [(type: UTType, symbolName: String)] = [
+        ("com.apple.airpods-pro", "airpods.pro"),
+        ("com.apple.airpods-max", "airpods.max"),
+        ("com.apple.airpods", "airpods"),
+        ("com.apple.power-beats-pro", "beats.powerbeatspro"),
+        ("com.apple.power-beats-3", "beats.powerbeats3"),
+        ("com.apple.power-beats-4", "beats.powerbeats"),
+        ("com.apple.beats-fit-pro", "beats.fitpro"),
+        ("com.apple.beats-studio-buds", "beats.studiobuds"),
+        ("com.apple.beats-solo-buds", "beats.solobuds"),
+        ("com.apple.beats-pill", "beats.pill"),
+        ("com.apple.beats-x", "beats.earphones"),
+        ("com.apple.beats-flex", "beats.earphones"),
+    ].compactMap { identifier, symbolName in
+        UTType(identifier).map { (type: $0, symbolName: symbolName) }
+    }
 
     /// A Bluetooth device's model identifier is `<product> <vendor>` in lower-case hex. Anything
     /// else is some other kind of device and not in this catalog.
