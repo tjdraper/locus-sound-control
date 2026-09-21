@@ -39,7 +39,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				DeviceInventory/AudioDeviceTransport.swift,
+				DeviceInventory/AppleAccessorySymbol.swift,
 				DeviceInventory/AudioOutputDevice.swift,
+				DeviceInventory/BluetoothAudioKind.swift,
 				DeviceInventory/OutputDeviceSymbol.swift,
 				Updates/UpdateChannelPreference.swift,
 			);

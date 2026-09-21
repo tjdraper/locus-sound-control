@@ -7,6 +7,7 @@ nonisolated enum OutputDeviceReader {
     /// look like a device list change to `OutputDeviceInventory`.
     static func connectedOutputs() -> [AudioOutputDevice] {
         let builtInSpeakers = BuiltInSpeakerSymbol.name
+        let bluetooth = PairedBluetoothAudio()
         return allDeviceIDs()
             .filter { hasOutputBuffers($0) && !isHidden($0) }
             .compactMap { id -> AudioOutputDevice? in
@@ -23,6 +24,7 @@ nonisolated enum OutputDeviceReader {
                     symbolName: OutputDeviceSymbol.name(
                         for: transport,
                         modelUID: modelUID,
+                        bluetoothKind: bluetooth.kind(forDeviceUID: uid),
                         builtInSpeakers: builtInSpeakers
                     )
                 )
