@@ -52,6 +52,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 4. **Overrides**
 
    - Clicking a device in the menu sets an override, which wins over priority until it is canceled
+   - Double-clicking a connected device in the Sound Devices window does the same. The window's header already says so, so this lands with the menu's click rather than after it.
    - Cancel from the same menu
    - A change made outside the app — Control Center, System Settings, another app — is adopted as an override (see Decisions). Changing output anywhere works, and the app never fights you.
    - Suppress adoption during the churn window after a device list change, so macOS's own fallback when a device disappears is not mistaken for a deliberate choice

@@ -5,8 +5,9 @@ struct SoundDevicesView: View {
     let priorityOrder: PriorityOrderStore
 
     var body: some View {
-        List {
-            Section {
+        VStack(spacing: 0) {
+            PriorityOrderHeader()
+            List {
                 ForEach(priorityOrder.order.entries) { entry in
                     let device = outputDevices.devices.first { entry.uids.contains($0.uid) }
                     OutputDeviceRow(
@@ -16,19 +17,15 @@ struct SoundDevicesView: View {
                     )
                 }
                 .onMove { priorityOrder.move(fromOffsets: $0, toOffset: $1) }
-            } header: {
-                Text("Priority")
-            } footer: {
-                Text("The highest connected device plays. Drag to reorder.")
             }
-        }
-        .overlay {
-            if priorityOrder.order.entries.isEmpty {
-                ContentUnavailableView(
-                    "No Output Devices",
-                    systemImage: "speaker.slash",
-                    description: Text("Nothing on this Mac can play sound right now.")
-                )
+            .overlay {
+                if priorityOrder.order.entries.isEmpty {
+                    ContentUnavailableView(
+                        "No Output Devices",
+                        systemImage: "speaker.slash",
+                        description: Text("Nothing on this Mac can play sound right now.")
+                    )
+                }
             }
         }
         .frame(minWidth: 520, minHeight: 360)
