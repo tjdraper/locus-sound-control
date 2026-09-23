@@ -36,12 +36,12 @@ final class OutputSwitchingCoordinator {
         guard priorityOrder.order == order else { return }
 
         let resolution = OutputResolver.resolve(order: order, connected: devices, overrideUID: nil)
-        guard case let .device(uid, reason) = resolution else {
+        guard case let .device(device, reason) = resolution else {
             Self.log.info("None of the \(order.entries.count) devices in the priority order is connected, so the output is left alone")
             return
         }
 
-        let outcome = DefaultOutputWriter.select(uid: uid)
+        let outcome = DefaultOutputWriter.select(device)
         Self.log.info(
             """
             Output belongs on \(Self.describe(reason), privacy: .public) of \(order.entries.count), \

@@ -3,7 +3,7 @@ import Foundation
 /// Decides which connected device the Mac should be playing through.
 nonisolated enum OutputResolver {
     enum Resolution: Equatable {
-        case device(uid: String, reason: Reason)
+        case device(AudioOutputDevice, reason: Reason)
 
         /// Nothing in the order is connected. Forcing some other device would be a guess, and
         /// macOS has already made one.
@@ -16,13 +16,13 @@ nonisolated enum OutputResolver {
     }
 
     static func resolve(order: PriorityOrder, connected: [AudioOutputDevice], overrideUID: String?) -> Resolution {
-        if let overrideUID, connected.contains(where: { $0.uid == overrideUID }) {
-            return .device(uid: overrideUID, reason: .override)
+        if let overrideUID, let device = connected.first(where: { $0.uid == overrideUID }) {
+            return .device(device, reason: .override)
         }
 
         for (index, entry) in order.entries.enumerated() where !entry.isHidden {
             if let device = connected.first(where: { entry.uids.contains($0.uid) }) {
-                return .device(uid: device.uid, reason: .priority(index: index))
+                return .device(device, reason: .priority(index: index))
             }
         }
         return .leaveAlone

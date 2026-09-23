@@ -41,7 +41,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Sound Devices window: drag devices up and down to set priority
    - `OutputResolver`, a pure value type: given the priority order, the hidden set, the connected devices and the active override, it returns the device that should be selected. No CoreAudio inside it, so it goes in the test target (see Tests in `AGENTS.md`).
    - Re-resolve when the device list changes, when the priority order is edited, or when an override changes
-   - Write both the default output and the system alert output, keeping them matched
+   - Write both the default output and the system alert output, keeping them matched, except that alerts are left alone on Bluetooth (see Decisions)
    - When no listed device is connected, leave the system alone rather than forcing something
    - First launch seeds the priority list from the connected devices, current output first, and marks them all as seen
    - Storage: an ordered list of device entries in `UserDefaults`, each holding a set of UIDs rather than one (see Decisions). Slice 6 adds the matching that puts several UIDs in an entry and the UI to correct it; this slice only has to store the shape, so nothing needs migrating later.
@@ -127,6 +127,10 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 - **Overrides do not re-arm.** When the overridden device disappears the override is cleared for good. Reconnecting it goes through the normal path, which means macOS's own switch to it is adopted as a fresh override anyway if macOS makes one.
 
 - **Both output properties are written.** macOS tracks the default output and the system alert output separately and they drift apart, which is a common surprise. The app keeps them matched. Not every device can be the system alert output, so a failure there is ignored rather than retried.
+
+  **Except on Bluetooth, where matching them drops the AirPods.** Found in slice 3's first real test. AirPods shared with an iPhone become the Mac's output provisionally when they connect, and are only claimed from the iPhone once real audio plays. macOS keeps alerts on the speakers meanwhile. The app moved alerts onto the AirPods, an iTerm notification played there, and an alert does not claim the AirPods — so after 1.5 seconds macOS gave up and moved everything to the speakers. The log line from `audioaccessoryd` is "Audio has been playing on virtual device for 1.5s. Route to speaker". Selecting the AirPods as the default output alone holds, and real audio then claims them. So on Bluetooth the alert output is left where macOS puts it.
+
+  This also bears on slice 4. The move back to the speakers was macOS's own, arrived ten seconds after the device list settled, and would have been adopted as an override. The Bluetooth exception removes the case seen here, but macOS's AirPods routing can change the output on its own for other reasons, so watch for it when building adoption.
 
 - **A priority entry is a set of identities, not a UID.** This started out as "identity is the UID" and the measurements killed it: one dock holds eight UIDs on one Mac, and a device that never moved is re-identified when its neighbour does. So the stored unit is an entry — a display name, a model identifier, a transport, and the set of UIDs known to belong to it — and a live device is resolved to an entry rather than looked up by key. The set grows as new UIDs for a known device turn up. This shape has to be in place from slice 3, because retrofitting it in slice 6 means migrating everything already stored.
 

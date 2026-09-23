@@ -14,7 +14,7 @@ struct OutputResolverTests {
         let resolution = OutputResolver.resolve(order: order, connected: connected, overrideUID: nil)
 
         // Assert
-        #expect(resolution == .device(uid: "display", reason: .priority(index: 1)))
+        #expect(resolution == .device(device("display"), reason: .priority(index: 1)))
     }
 
     @Test
@@ -28,7 +28,7 @@ struct OutputResolverTests {
         let resolution = OutputResolver.resolve(order: order, connected: connected, overrideUID: nil)
 
         // Assert
-        #expect(resolution == .device(uid: "speakers", reason: .priority(index: 2)))
+        #expect(resolution == .device(device("speakers"), reason: .priority(index: 2)))
     }
 
     @Test
@@ -40,7 +40,7 @@ struct OutputResolverTests {
         let resolution = OutputResolver.resolve(order: order, connected: connected, overrideUID: "speakers")
 
         // Assert
-        #expect(resolution == .device(uid: "speakers", reason: .override))
+        #expect(resolution == .device(device("speakers"), reason: .override))
     }
 
     @Test
@@ -52,7 +52,7 @@ struct OutputResolverTests {
         let resolution = OutputResolver.resolve(order: order, connected: connected, overrideUID: "airpods")
 
         // Assert
-        #expect(resolution == .device(uid: "display", reason: .priority(index: 1)))
+        #expect(resolution == .device(device("display"), reason: .priority(index: 1)))
     }
 
     @Test
@@ -78,7 +78,7 @@ struct OutputResolverTests {
         let resolution = OutputResolver.resolve(order: order, connected: [device("dock-port-2")], overrideUID: nil)
 
         // Assert
-        #expect(resolution == .device(uid: "dock-port-2", reason: .priority(index: 0)))
+        #expect(resolution == .device(device("dock-port-2"), reason: .priority(index: 0)))
     }
 }
 

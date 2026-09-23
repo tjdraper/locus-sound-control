@@ -4,7 +4,8 @@ import Foundation
 /// Points the Mac's sound output at a device.
 ///
 /// macOS tracks the default output and the system alert output separately, and they drift apart
-/// until alerts play somewhere other than everything else. Both are written, so they stay matched.
+/// until alerts play somewhere other than everything else. Both are written, so they stay matched,
+/// except for Bluetooth.
 nonisolated enum DefaultOutputWriter {
     enum Outcome: Equatable {
         case alreadySelected
@@ -13,14 +14,19 @@ nonisolated enum DefaultOutputWriter {
         case failed(OSStatus)
     }
 
-    static func select(uid: String) -> Outcome {
-        guard let target = deviceID(forUID: uid) else { return .deviceNotFound }
+    static func select(_ device: AudioOutputDevice) -> Outcome {
+        guard let target = deviceID(forUID: device.uid) else { return .deviceNotFound }
 
         var outcome = Outcome.alreadySelected
         if currentDevice(kAudioHardwarePropertyDefaultOutputDevice) != target {
             let status = setDevice(kAudioHardwarePropertyDefaultOutputDevice, to: target)
             outcome = status == noErr ? .switched : .failed(status)
         }
+
+        // AirPods shared with another device are only provisionally the Mac's until real audio
+        // plays, and macOS keeps alerts off them meanwhile. An alert played on them does not claim
+        // them, so after a second and a half macOS gives up and moves everything to the speakers.
+        guard device.transport != .bluetooth else { return outcome }
 
         // Not every device can be the alert output, so a refusal is ignored rather than retried.
         if currentDevice(kAudioHardwarePropertyDefaultSystemOutputDevice) != target {
