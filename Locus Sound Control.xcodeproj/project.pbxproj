@@ -44,6 +44,7 @@
 				DeviceInventory/BluetoothAudioKind.swift,
 				DeviceInventory/OutputDeviceSymbol.swift,
 				OutputSwitching/OutputResolver.swift,
+				Override/OutsideChangeAdoption.swift,
 				PriorityOrder/DeviceEntry.swift,
 				PriorityOrder/PriorityOrder.swift,
 				Updates/UpdateChannelPreference.swift,

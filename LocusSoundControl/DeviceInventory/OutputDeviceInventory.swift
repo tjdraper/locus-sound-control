@@ -12,9 +12,13 @@ final class OutputDeviceInventory {
     private(set) var devices: [AudioOutputDevice] = []
     private(set) var currentOutputUID: String?
 
-    /// True while a device list change is still being waited out. Slice 4 needs this to tell
-    /// macOS's own fallback, which lands in this window, from a deliberate choice.
+    /// True while a device list change is still being waited out. macOS picks its own fallback
+    /// output in this window, which is not a choice anyone made.
     private(set) var isSettling = false
+
+    /// macOS's fallback can also land just after the list holds still, so the moment it did is
+    /// kept as well as whether it is still settling.
+    private(set) var settledAt: ContinuousClock.Instant?
 
     @ObservationIgnored private var watchers: [Task<Void, Never>] = []
     @ObservationIgnored private var settleTask: Task<Void, Never>?
@@ -128,6 +132,7 @@ final class OutputDeviceInventory {
                 """
             )
             currentOutputUID = OutputDeviceReader.currentOutputUID()
+            settledAt = .now
             isSettling = false
             settleTask = nil
         }

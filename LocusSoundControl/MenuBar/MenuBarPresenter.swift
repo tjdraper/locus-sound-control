@@ -9,6 +9,7 @@ import AppKit
 final class MenuBarPresenter: NSObject {
     private let outputDevices: OutputDeviceInventory
     private let priorityOrder: PriorityOrderStore
+    private let override: OverrideStore
     private let updates: UpdateController
     private let showSoundDevices: () -> Void
 
@@ -18,11 +19,13 @@ final class MenuBarPresenter: NSObject {
     init(
         outputDevices: OutputDeviceInventory,
         priorityOrder: PriorityOrderStore,
+        override: OverrideStore,
         updates: UpdateController,
         showSoundDevices: @escaping () -> Void
     ) {
         self.outputDevices = outputDevices
         self.priorityOrder = priorityOrder
+        self.override = override
         self.updates = updates
         self.showSoundDevices = showSoundDevices
     }
@@ -58,6 +61,15 @@ final class MenuBarPresenter: NSObject {
         }
     }
 
+    @objc private func overrideWithDevice(_ sender: NSMenuItem) {
+        guard let device = sender.representedObject as? AudioOutputDevice else { return }
+        override.set(device.uid)
+    }
+
+    @objc private func cancelOverride() {
+        override.cancel()
+    }
+
     @objc private func openSoundDevices() {
         showSoundDevices()
     }
@@ -79,10 +91,15 @@ extension MenuBarPresenter: NSMenuDelegate {
 
         let devices = OutputDeviceMenuBuilder.rows(
             for: priorityOrder.order.inPriorityOrder(outputDevices.devices),
-            currentOutputUID: outputDevices.currentOutputUID
+            currentOutputUID: outputDevices.currentOutputUID,
+            target: self,
+            action: #selector(overrideWithDevice)
         )
         for row in devices {
             menu.addItem(row)
+        }
+        if override.uid != nil {
+            menu.addItem(item(title: "Cancel Override", action: #selector(cancelOverride)))
         }
 
         if !devices.isEmpty { menu.addItem(.separator()) }

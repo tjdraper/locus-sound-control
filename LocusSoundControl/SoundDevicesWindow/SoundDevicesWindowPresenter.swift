@@ -6,12 +6,19 @@ import SwiftUI
 final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
     private let outputDevices: OutputDeviceInventory
     private let priorityOrder: PriorityOrderStore
+    private let override: OverrideStore
     private let dockIcon: DockIconPresence
     private lazy var window = makeWindow()
 
-    init(outputDevices: OutputDeviceInventory, priorityOrder: PriorityOrderStore, dockIcon: DockIconPresence) {
+    init(
+        outputDevices: OutputDeviceInventory,
+        priorityOrder: PriorityOrderStore,
+        override: OverrideStore,
+        dockIcon: DockIconPresence
+    ) {
         self.outputDevices = outputDevices
         self.priorityOrder = priorityOrder
+        self.override = override
         self.dockIcon = dockIcon
     }
 
@@ -27,7 +34,7 @@ final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
 
     private func makeWindow() -> NSWindow {
         let window = NSWindow(contentViewController: NSHostingController(
-            rootView: SoundDevicesView(outputDevices: outputDevices, priorityOrder: priorityOrder)
+            rootView: SoundDevicesView(outputDevices: outputDevices, priorityOrder: priorityOrder, override: override)
         ))
         window.title = "Sound Devices"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]

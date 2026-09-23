@@ -4,20 +4,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let updates = UpdateController()
     let outputDevices = OutputDeviceInventory()
     let priorityOrder = PriorityOrderStore()
+    let override = OverrideStore()
     let dockIcon = DockIconPresence()
 
     private lazy var outputSwitching = OutputSwitchingCoordinator(
         outputDevices: outputDevices,
-        priorityOrder: priorityOrder
+        priorityOrder: priorityOrder,
+        override: override
     )
     private lazy var soundDevicesWindow = SoundDevicesWindowPresenter(
         outputDevices: outputDevices,
         priorityOrder: priorityOrder,
+        override: override,
         dockIcon: dockIcon
     )
     private lazy var menuBar = MenuBarPresenter(
         outputDevices: outputDevices,
         priorityOrder: priorityOrder,
+        override: override,
         updates: updates,
         showSoundDevices: { [soundDevicesWindow] in soundDevicesWindow.show() }
     )

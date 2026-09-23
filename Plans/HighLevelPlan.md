@@ -55,7 +55,8 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Double-clicking a connected device in the Sound Devices window does the same. The window's header already says so, so this lands with the menu's click rather than after it.
    - Cancel from the same menu
    - A change made outside the app — Control Center, System Settings, another app — is adopted as an override (see Decisions). Changing output anywhere works, and the app never fights you.
-   - Suppress adoption during the churn window after a device list change, so macOS's own fallback when a device disappears is not mistaken for a deliberate choice
+   - Suppress adoption during the churn window after a device list change, so macOS's own fallback when a device disappears is not mistaken for a deliberate choice. The window runs until a few seconds after the list settles, because macOS's picks can land just after it holds still.
+   - The one exception is a device never seen before. macOS switches to a device when it first connects, and that is adopted, so a new device plays instead of being switched away from straight back to whatever sits above it in the order. A known device arriving goes through priority, which is what stops reconnecting AirPods from replacing an override.
    - The override survives quit and restart
    - When the overridden device disappears, the override is cleared and priority takes over. It does not come back when the device reconnects.
 
@@ -73,7 +74,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - The Sound Devices window shows the queue at the top, and dragging a device out of it into the priority list clears it
    - The window's "Priority Order" header sits at the top of the window today. Once the queue is above the list, the header belongs with the list, below the queue, or it reads as describing the queue.
    - A new device is not eligible for automatic selection while it sits in the queue. Plugging something in should not silently hijack audio.
-   - macOS usually switches to a newly connected device on its own. Slice 4 adopts that as an override, so the new device does play, the badge says it needs sorting, and nothing is lost if it is never sorted.
+   - macOS usually switches to a newly connected device on its own. Slice 4 adopts that as an override when the device has never been seen, so the new device does play, the badge says it needs sorting, and nothing is lost if it is never sorted. "Never seen" is decided against the priority order today. Once the queue exists, this slice has to decide whether a queued device reconnecting still counts as never seen, which decides whether it plays each time it comes back.
    - The badge is drawn into the menu bar image, the same approach as locus-launcher's `MenuBarIcon`
    - Screen sharing and AirPlay taps get a new UID per session (see Decisions). They never enter the queue and never badge, or the icon would light up after every screen share.
    - The Sound Devices window can **merge** two entries into one — these are the same device — and **split** a merged entry back apart. Both directions are needed: the automatic match cannot tell two units of the same model apart (see Decisions), and a device with no model identifier has nothing else to fall back on. A merged entry shows which identities it covers, so what the app decided is visible rather than guessed at.
@@ -121,11 +122,15 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
 ## Decisions
 
-- **Outside changes become overrides.** Setting the default output fires the same notification whether the app or something else did it, so the app compares the new device against what it last wrote. A match is its own write. A mismatch is someone else, and becomes an override. This is compared by resulting device rather than by tracking individual writes, so it cannot get out of step. The exception is the window right after a device list change, when macOS picks its own fallback; adoption is suppressed there.
+- **Outside changes become overrides.** Setting the default output fires the same notification whether the app or something else did it, so the app compares the new device against what it last wrote. A match is its own write. A mismatch is someone else, and becomes an override. This is compared by resulting device rather than by tracking individual writes, so it cannot get out of step. The exception is the window right after a device list change, when macOS picks its own fallback; adoption is suppressed there, and the app switches back to what priority or the override says.
+
+  That window lasts until three seconds after the list settles. Too short and macOS's late picks become overrides; too long and a real choice made right after plugging something in gets reverted. Every adoption and every suppressed change is logged with how long after the settle it came, so the number can be tuned from real cases rather than guessed.
+
+  A device never seen before is adopted even inside the window. macOS switching to a device the moment it first connects is the only way it gets played at all, since it arrives at the bottom of the order. Known devices are not, because adopting macOS's switch to reconnecting AirPods would replace an override with them, which is the original complaint.
 
 - **A connecting device takes over unless you chose the current one.** A higher-priority device arriving switches output immediately, even mid-playback — that is what a priority order means. The exception is an active override, which holds until it is cancelled or its device disappears. So the override is not just a way to depart from the order for a moment; it is how the user says "I am deliberately listening here, leave it alone." Since a change made in Control Center is adopted as an override too, that statement can be made from outside the app as well as inside it. This is the answer to the original complaint: AirPods reconnecting take over when nothing was chosen, and do not when something was.
 
-- **Overrides do not re-arm.** When the overridden device disappears the override is cleared for good. Reconnecting it goes through the normal path, which means macOS's own switch to it is adopted as a fresh override anyway if macOS makes one.
+- **Overrides do not re-arm.** When the overridden device disappears the override is cleared for good. Reconnecting it goes through the normal path: priority decides, and macOS's own switch to it lands in the churn window and is not adopted. Only a device the app has never seen is adopted that way (see "Outside changes become overrides").
 
 - **Both output properties are written.** macOS tracks the default output and the system alert output separately and they drift apart, which is a common surprise. The app keeps them matched. Not every device can be the system alert output, so a failure there is ignored rather than retried.
 

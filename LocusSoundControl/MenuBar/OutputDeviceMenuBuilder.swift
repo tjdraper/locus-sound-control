@@ -4,12 +4,16 @@ import AppKit
 enum OutputDeviceMenuBuilder {
     private static let iconPointSize: CGFloat = 14
 
-    static func rows(for devices: [AudioOutputDevice], currentOutputUID: String?) -> [NSMenuItem] {
+    static func rows(
+        for devices: [AudioOutputDevice],
+        currentOutputUID: String?,
+        target: AnyObject,
+        action: Selector
+    ) -> [NSMenuItem] {
         devices.map { device in
             let isCurrentOutput = device.uid == currentOutputUID
-            // TODO: slice 4 gives a row its action. Until then clicking one does nothing, and it
-            // is only left enabled so that the tint on the current device is not drawn dimmed.
-            let row = NSMenuItem(title: device.name, action: nil, keyEquivalent: "")
+            let row = NSMenuItem(title: device.name, action: action, keyEquivalent: "")
+            row.target = target
             row.isEnabled = true
             row.representedObject = device
             row.image = icon(device.symbolName, tint: isCurrentOutput ? .accent : nil)

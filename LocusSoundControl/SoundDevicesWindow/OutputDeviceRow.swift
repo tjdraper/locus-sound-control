@@ -7,6 +7,8 @@ struct OutputDeviceRow: View {
     let device: AudioOutputDevice?
 
     let isCurrentOutput: Bool
+    let isOverride: Bool
+    let isSelected: Bool
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
@@ -14,7 +16,7 @@ struct OutputDeviceRow: View {
                 Image(systemName: entry.symbolName)
                     .font(.title3)
                     .frame(width: 28, alignment: .center)
-                    .foregroundStyle(isCurrentOutput ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                    .foregroundStyle(iconStyle)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(entry.name)
@@ -46,13 +48,22 @@ struct OutputDeviceRow: View {
         .padding(.vertical, 4)
     }
 
+    /// A selected row is highlighted in the accent color, so a tinted icon would disappear into it.
+    private var iconStyle: AnyShapeStyle {
+        isCurrentOutput && !isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary)
+    }
+
     private var uids: String {
         device?.uid ?? entry.uids.sorted().joined(separator: ", ")
     }
 
     /// Said in words so that a device's state never rests on dimming alone.
     private var status: String? {
-        if isCurrentOutput { return "Current Output" }
-        return device == nil ? "Not Connected" : nil
+        switch (isCurrentOutput, isOverride) {
+        case (true, true): "Current Output · Override"
+        case (true, false): "Current Output"
+        case (false, true): "Override"
+        case (false, false): device == nil ? "Not Connected" : nil
+        }
     }
 }
