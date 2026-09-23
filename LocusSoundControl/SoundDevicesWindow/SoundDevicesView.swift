@@ -28,6 +28,6 @@ struct SoundDevicesView: View {
                 }
             }
         }
-        .frame(minWidth: 520, minHeight: 360)
+        .frame(minWidth: 520, idealWidth: 620, maxWidth: 760, minHeight: 360, idealHeight: 480)
     }
 }
