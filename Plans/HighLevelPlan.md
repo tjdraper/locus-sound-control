@@ -242,6 +242,8 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
   The fix: a window built from an `NSHostingController` measures 1x32 until something asks its content for a size, so `NSWindow.center()` puts the corner where the middle should be. locus-launcher reaches for `NSWindow.layoutIfNeeded()`, which does not settle it, and neither does `layoutSubtreeIfNeeded()` on the content view. Reading `fittingSize` does. Measured here on a 1512-wide display: a 520-wide window landed at x=755, the screen's midpoint, instead of 496. **locus-launcher has the same bug and its windows are off center on first open.**
 
+- **An open window gives the app a Dock icon.** A menu bar app's window is otherwise missing from ⌘Tab and the Dock, so once another app covers it the only way back is the menu bar. While any window is open the app is a regular app, and it goes back to menu bar only when the last one closes. Clicking the Dock icon, or opening the app again from Finder, shows Sound Devices. Like window placement, this binds every window the app grows: each presenter reports its window to `DockIconPresence` when it shows and closes. Ported from locus-launcher.
+
 - **Two windows, not one.** Sound Devices is the main window and is the whole feature: priority, hidden devices, the new device queue. Settings holds app preferences — launch at login, updates — and stays short. Both are plain AppKit windows hosting SwiftUI views, not SwiftUI's `Settings` scene, which can only be opened from inside a SwiftUI view.
 
 - **Quitting leaves the output where it is.** The app does not restore anything on the way out, because there is nothing sensible to restore to.
