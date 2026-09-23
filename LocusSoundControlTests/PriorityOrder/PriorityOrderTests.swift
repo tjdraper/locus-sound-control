@@ -93,6 +93,18 @@ struct PriorityOrderTests {
     }
 
     @Test
+    func aDeviceNotInTheOrderHasNoEntry() {
+        // Arrange
+        let order = PriorityOrder.seeded(from: [device("speakers")], currentOutputUID: nil)
+
+        // Act
+        let entry = order.entry(forUID: "airpods")
+
+        // Assert
+        #expect(entry == nil)
+    }
+
+    @Test
     func anEntrySurvivesBeingSavedAndReadBack() throws {
         // Arrange
         var entry = DeviceEntry(device: device("airpods"))

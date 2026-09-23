@@ -16,6 +16,10 @@ nonisolated struct PriorityOrder: Equatable, Sendable {
         entries.firstIndex { $0.uids.contains(uid) }
     }
 
+    func entry(forUID uid: String) -> DeviceEntry? {
+        index(ofUID: uid).map { entries[$0] }
+    }
+
     /// Adds devices never seen before at the bottom, where they can only win when nothing else is
     /// connected. Slice 6 queues them instead.
     mutating func record(_ connected: [AudioOutputDevice]) {

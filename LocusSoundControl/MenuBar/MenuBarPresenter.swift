@@ -39,11 +39,20 @@ final class MenuBarPresenter: NSObject {
         menu.autoenablesItems = false
         statusItem.menu = menu
 
-        iconTask = Task { [weak self, outputDevices] in
-            for await device in Observations({ outputDevices.currentDevice }) {
+        // macOS switches to a device the moment it connects, before the device list has settled
+        // enough to include it. The remembered entry already knows its icon, so the menu bar does
+        // not flash a generic speaker while the list catches up.
+        iconTask = Task { [weak self, outputDevices, priorityOrder] in
+            let current = Observations {
+                (
+                    outputDevices.currentOutputUID.flatMap { priorityOrder.order.entry(forUID: $0) },
+                    outputDevices.currentDevice
+                )
+            }
+            for await (entry, device) in current {
                 self?.statusItem.button?.image = MenuBarIcon.image(
-                    symbolName: device?.symbolName ?? OutputDeviceSymbol.generic,
-                    deviceName: device?.name
+                    symbolName: entry?.symbolName ?? device?.symbolName ?? OutputDeviceSymbol.generic,
+                    deviceName: entry?.name ?? device?.name
                 )
             }
         }
