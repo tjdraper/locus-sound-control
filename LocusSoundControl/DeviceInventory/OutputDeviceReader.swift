@@ -7,7 +7,7 @@ nonisolated enum OutputDeviceReader {
     /// look like a device list change to `OutputDeviceInventory`.
     static func connectedOutputs() -> [AudioOutputDevice] {
         let builtInSpeakers = BuiltInSpeakerSymbol.name
-        let outputs = allDeviceIDs().filter { hasOutputBuffers($0) && !isHidden($0) }
+        let outputs = allDeviceIDs().filter { hasOutputBuffers($0) && !isHidden($0) && canBeDefaultOutput($0) }
 
         // Reading the paired devices is what raises the Bluetooth permission prompt. Slice 9's
         // setup checklist asks for it up front, but only a fresh install sees that, so this is
@@ -108,6 +108,23 @@ nonisolated enum OutputDeviceReader {
             return false
         }
         return hidden != 0
+    }
+
+    /// Some devices publish output buffers but refuse to be the default output — Teams' loopback
+    /// device is one. CoreAudio accepts a write selecting one without an error and changes nothing,
+    /// and System Settings leaves them out of its output list.
+    private static func canBeDefaultOutput(_ id: AudioObjectID) -> Bool {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyDeviceCanBeDefaultDevice,
+            mScope: kAudioObjectPropertyScopeOutput,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        var canBeDefault: UInt32 = 0
+        guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, &canBeDefault) == noErr else {
+            return false
+        }
+        return canBeDefault != 0
     }
 
     private static func transport(_ id: AudioObjectID) -> UInt32 {

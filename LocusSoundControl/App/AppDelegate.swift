@@ -3,10 +3,19 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let updates = UpdateController()
     let outputDevices = OutputDeviceInventory()
+    let priorityOrder = PriorityOrderStore()
 
-    private lazy var soundDevicesWindow = SoundDevicesWindowPresenter(outputDevices: outputDevices)
+    private lazy var outputSwitching = OutputSwitchingCoordinator(
+        outputDevices: outputDevices,
+        priorityOrder: priorityOrder
+    )
+    private lazy var soundDevicesWindow = SoundDevicesWindowPresenter(
+        outputDevices: outputDevices,
+        priorityOrder: priorityOrder
+    )
     private lazy var menuBar = MenuBarPresenter(
         outputDevices: outputDevices,
+        priorityOrder: priorityOrder,
         updates: updates,
         showSoundDevices: { [soundDevicesWindow] in soundDevicesWindow.show() }
     )
@@ -17,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ApplicationsFolderMoveWorkflow().offerIfNeeded()
         updates.start()
         outputDevices.start()
+        outputSwitching.start()
         menuBar.start()
     }
 }

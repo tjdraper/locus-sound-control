@@ -1,7 +1,10 @@
 import CoreAudio
 
 /// How a device is attached, as CoreAudio reports it.
-nonisolated enum AudioDeviceTransport: Sendable {
+///
+/// The case names are saved with the priority order, so renaming one loses it for every device
+/// already stored.
+nonisolated enum AudioDeviceTransport: String, Codable, Sendable {
     case builtIn
     case usb
     case bluetooth

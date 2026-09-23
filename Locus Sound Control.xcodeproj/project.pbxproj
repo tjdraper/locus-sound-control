@@ -43,6 +43,9 @@
 				DeviceInventory/AudioOutputDevice.swift,
 				DeviceInventory/BluetoothAudioKind.swift,
 				DeviceInventory/OutputDeviceSymbol.swift,
+				OutputSwitching/OutputResolver.swift,
+				PriorityOrder/DeviceEntry.swift,
+				PriorityOrder/PriorityOrder.swift,
 				Updates/UpdateChannelPreference.swift,
 			);
 			target = 324EA44A305F81D100DDFE7D /* Locus Sound Control Tests */;

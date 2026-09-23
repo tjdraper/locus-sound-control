@@ -8,6 +8,7 @@ import AppKit
 /// the item sets `preferredImageVisibility`, and SwiftUI offers no way to reach it.
 final class MenuBarPresenter: NSObject {
     private let outputDevices: OutputDeviceInventory
+    private let priorityOrder: PriorityOrderStore
     private let updates: UpdateController
     private let showSoundDevices: () -> Void
 
@@ -16,10 +17,12 @@ final class MenuBarPresenter: NSObject {
 
     init(
         outputDevices: OutputDeviceInventory,
+        priorityOrder: PriorityOrderStore,
         updates: UpdateController,
         showSoundDevices: @escaping () -> Void
     ) {
         self.outputDevices = outputDevices
+        self.priorityOrder = priorityOrder
         self.updates = updates
         self.showSoundDevices = showSoundDevices
     }
@@ -65,9 +68,8 @@ extension MenuBarPresenter: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
-        // System order until slice 3 gives the list a priority order.
         let devices = OutputDeviceMenuBuilder.rows(
-            for: outputDevices.devices,
+            for: priorityOrder.order.inPriorityOrder(outputDevices.devices),
             currentOutputUID: outputDevices.currentOutputUID
         )
         for row in devices {

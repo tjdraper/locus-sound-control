@@ -2,16 +2,28 @@ import SwiftUI
 
 struct SoundDevicesView: View {
     let outputDevices: OutputDeviceInventory
+    let priorityOrder: PriorityOrderStore
 
     var body: some View {
-        List(outputDevices.devices) { device in
-            OutputDeviceRow(
-                device: device,
-                isCurrentOutput: device.uid == outputDevices.currentOutputUID
-            )
+        List {
+            Section {
+                ForEach(priorityOrder.order.entries) { entry in
+                    let device = outputDevices.devices.first { entry.uids.contains($0.uid) }
+                    OutputDeviceRow(
+                        entry: entry,
+                        device: device,
+                        isCurrentOutput: device != nil && device?.uid == outputDevices.currentOutputUID
+                    )
+                }
+                .onMove { priorityOrder.move(fromOffsets: $0, toOffset: $1) }
+            } header: {
+                Text("Priority")
+            } footer: {
+                Text("The highest connected device plays. Drag to reorder.")
+            }
         }
         .overlay {
-            if outputDevices.devices.isEmpty {
+            if priorityOrder.order.entries.isEmpty {
                 ContentUnavailableView(
                     "No Output Devices",
                     systemImage: "speaker.slash",
