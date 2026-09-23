@@ -115,6 +115,16 @@ Run the tests with:
 
 - `xcodebuild -project "Locus Sound Control.xcodeproj" -scheme "Locus Sound Control" -destination "platform=macOS" test`
 
+## Reading the app's log
+
+Most of what this app does happens while nobody is looking, so the behavior that matters is recorded rather than shown: which device list settled, how long it waited, and later which device was chosen and why. Read it with:
+
+- `log show --last 30m --predicate 'subsystem == "com.buzzingpixel.LocusSoundControl"' --info`
+
+`--info` is required. Those entries are logged at info level and a plain `log show` silently omits them, which looks exactly like an app that logged nothing. Use `log stream` with the same predicate to watch live.
+
+Log the decision and its inputs, never device names: they carry people's names, and `os_log` redacts interpolated strings unless marked `privacy: .public`, so a name either leaks or shows as `<private>`. Counts and a reason answer the question without either problem.
+
 ## Swift 6 Concurrency
 
 The project uses Swift 6 with `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`. App code is main-actor-isolated by default; opt out only when needed.
