@@ -71,6 +71,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
    - A device the app has never seen goes into a queue instead of the priority list, and the menu bar icon gets a badge
    - The Sound Devices window shows the queue at the top, and dragging a device out of it into the priority list clears it
+   - The window's "Priority Order" header sits at the top of the window today. Once the queue is above the list, the header belongs with the list, below the queue, or it reads as describing the queue.
    - A new device is not eligible for automatic selection while it sits in the queue. Plugging something in should not silently hijack audio.
    - macOS usually switches to a newly connected device on its own. Slice 4 adopts that as an override, so the new device does play, the badge says it needs sorting, and nothing is lost if it is never sorted.
    - The badge is drawn into the menu bar image, the same approach as locus-launcher's `MenuBarIcon`

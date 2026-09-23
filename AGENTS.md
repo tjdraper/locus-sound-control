@@ -123,6 +123,11 @@ Most of what this app does happens while nobody is looking, so the behavior that
 
 `--info` is required. Those entries are logged at info level and a plain `log show` silently omits them, which looks exactly like an app that logged nothing. Use `log stream` with the same predicate to watch live.
 
+When the output moves and this app's log has no entry for it, something else moved it. CoreAudio logs every change to the default devices, including which process made it, and on this Mac the usual culprit is macOS's own AirPods routing in `audioaccessoryd`:
+
+- `log show --last 30m --style compact | grep -E "SetDefaultDevice|HALDefaultDeviceProperty::SetData"` for who set which default device, and when
+- `log show --last 30m --predicate 'process == "audioaccessoryd"' --style compact` for why AirPods were routed or dropped. Its "Route to speaker" and "Hijack" lines give the reason.
+
 Log the decision and its inputs, never device names: they carry people's names, and `os_log` redacts interpolated strings unless marked `privacy: .public`, so a name either leaks or shows as `<private>`. Counts and a reason answer the question without either problem.
 
 ## Swift 6 Concurrency
