@@ -54,16 +54,16 @@ enum MainMenu {
     }
 
     private static func settingsItem() -> NSMenuItem {
-        let item = NSMenuItem(title: "Settings…", action: #selector(AppDelegate.showSettings(_:)), keyEquivalent: ",")
-        // macOS 27 gives a "Settings…" item a gear of its own choosing.
-        if #available(macOS 27.0, *) { item.preferredImageVisibility = .hidden }
-        return item
+        NSMenuItem(title: "Settings…", action: #selector(AppDelegate.showSettings(_:)), keyEquivalent: ",")
     }
 
     private static func submenu(named name: String, items: [NSMenuItem]) -> NSMenuItem {
         let parent = NSMenuItem()
         let menu = NSMenu(title: name)
-        for item in items { menu.addItem(item) }
+        for item in items {
+            if !item.isSeparatorItem { item.refuseAutomaticImage() }
+            menu.addItem(item)
+        }
         parent.submenu = menu
         return parent
     }

@@ -179,8 +179,7 @@ extension MenuBarPresenter: NSMenuDelegate {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
         item.target = self
         item.isEnabled = true
-        // macOS 27 gives standard titles such as "Settings…" a symbol of its own choosing.
-        if #available(macOS 27.0, *) { item.preferredImageVisibility = .hidden }
+        item.refuseAutomaticImage()
         return item
     }
 }

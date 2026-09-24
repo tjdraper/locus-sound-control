@@ -20,6 +20,7 @@ final class SoundDevicesFileMenu: NSObject, NSMenuDelegate {
             addSeparated(DeviceCommand.nothingSelectedTitles, to: menu) { title in
                 let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
                 item.isEnabled = false
+                item.refuseAutomaticImage()
                 return item
             }
             return
@@ -30,6 +31,7 @@ final class SoundDevicesFileMenu: NSObject, NSMenuDelegate {
             item.target = self
             item.isEnabled = true
             item.representedObject = command
+            item.refuseAutomaticImage()
             return item
         }
     }
