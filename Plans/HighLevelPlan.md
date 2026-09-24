@@ -148,12 +148,12 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
 10. **Polish and first release**
 
-   - App icon. The menu bar icons stay SF Symbols: slice 5 lets the user pick from a curated set of them, so replacing them with drawn artwork would mean drawing the whole set. Custom artwork for the default symbol alone is still on the table, and would have to keep working with the badge drawn over it.
-   - Website download page, v1
-   - Decide whether the menu bar icon can be hidden. macOS's own "Allow in the Menu Bar" covers hiding it, but this app's only affordance for setting an override is that menu, so hiding it removes a feature rather than just an indicator.
-   - Remove the setup checklist row from Settings if it was added there. The menu still opens it.
-   - Decide whether each Sound Devices row keeps showing its transport, UIDs and model identifier. They went in as a way to read identities against a real setup, and are now also how a merge the app made on its own is seen, so dropping them needs another way to show that.
-   - The override's accent plate draws `display` with its screen filled in, because a single palette color flattens the symbol's layers. Drawing the template's shape and filling it, as the badge does for the plain glyph, would fix it.
+   - App icon. The menu bar icons stay SF Symbols: slice 5 lets the user pick from a curated set of them, so replacing them with drawn artwork would mean drawing the whole set.
+   - Website download page, v1, built outside this repository
+   - The menu bar icon has no setting to hide it. macOS's own "Allow in the Menu Bar" already covers that, and this app's only affordance for setting an override is that menu, so hiding it removes a feature rather than just an indicator.
+   - The setup checklist opens from the menu only. Settings never got a row for it.
+   - Each Sound Devices row shows how the device is connected, and says when it stands for more than one device macOS reports ("USB · Merged from 2 devices"), with a tooltip pointing at Split. That is how a merge the app made on its own is seen. The UIDs and model identifier are debug information, behind View > Show Debug Info and off by default.
+   - The override's accent plate colors its symbol by filling the template's shape, as the badge does, rather than with a palette color. A single palette color flattens the symbol's layers and filled in the screens of `display`, `laptopcomputer` and `tv`.
 
 ## Decisions
 
