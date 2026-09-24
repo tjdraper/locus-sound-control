@@ -56,4 +56,34 @@ struct UpdateChannelPreferenceTests {
         #expect(!UpdateChannelPreference.isBeta("2026.1"))
         #expect(UpdateChannelPreference.isBeta("2026.0.1"))
     }
+
+    @Test
+    func aFullReleaseAfterABetaOwesATrackChoiceUntilAnswered() throws {
+        // Arrange
+        let defaults = try makeDefaults()
+        UpdateChannelPreference(defaults: defaults, version: "2026.1.2").settleAtLaunch()
+        let release = UpdateChannelPreference(defaults: defaults, version: "2026.2")
+        release.settleAtLaunch()
+
+        // Act
+        let owedBeforeAnswering = release.owesTrackChoice
+        release.chooseTrack(staysOnBetas: false)
+
+        // Assert
+        #expect(owedBeforeAnswering)
+        #expect(!release.owesTrackChoice)
+        #expect(!release.receivesBetaUpdates)
+    }
+
+    @Test
+    func aFreshFullReleaseOwesNoTrackChoice() throws {
+        // Arrange
+        let preference = try UpdateChannelPreference(defaults: makeDefaults(), version: "2026.1")
+
+        // Act
+        preference.settleAtLaunch()
+
+        // Assert
+        #expect(!preference.owesTrackChoice)
+    }
 }

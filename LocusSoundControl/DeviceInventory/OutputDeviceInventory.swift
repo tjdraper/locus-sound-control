@@ -64,6 +64,17 @@ final class OutputDeviceInventory {
         ]
     }
 
+    /// Being granted Bluetooth access changes the icon guessed for a device that is already
+    /// listed, with no device list change to prompt a read.
+    func rereadDevices() {
+        // A settle in progress reads the list again before it publishes.
+        guard settleTask == nil else { return }
+        let read = OutputDeviceReader.connectedOutputs()
+        guard read != devices else { return }
+        devices = read
+        Self.log.info("Device list read again: \(read.count) outputs")
+    }
+
     /// How long the device list has to hold still before it is believed.
     private enum Pace {
         /// Plugging a device in or pulling it out fires several notifications in a row, and a

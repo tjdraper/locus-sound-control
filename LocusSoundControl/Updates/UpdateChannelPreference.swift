@@ -5,6 +5,7 @@ nonisolated struct UpdateChannelPreference {
     static let betaChannel = "beta"
 
     private static let defaultsKey = "ReceiveBetaUpdates"
+    private static let owesTrackChoiceKey = "OwesBetaTrackChoice"
 
     let defaults: UserDefaults
     let isRunningBeta: Bool
@@ -33,5 +34,23 @@ nonisolated struct UpdateChannelPreference {
     /// Sparkle always includes the default channel, so this only ever names the extras.
     var allowedChannels: Set<String> {
         receivesBetaUpdates ? [Self.betaChannel] : []
+    }
+
+    /// Kept until answered, so a prompt the app quits out of comes back on the next launch.
+    var owesTrackChoice: Bool {
+        !isRunningBeta && defaults.bool(forKey: Self.owesTrackChoiceKey)
+    }
+
+    /// Has to run on every launch of a beta, so the first launch of the full release that follows
+    /// knows to ask whether to stay on betas.
+    func settleAtLaunch() {
+        if isRunningBeta {
+            defaults.set(true, forKey: Self.owesTrackChoiceKey)
+        }
+    }
+
+    func chooseTrack(staysOnBetas: Bool) {
+        receivesBetaUpdates = staysOnBetas
+        defaults.removeObject(forKey: Self.owesTrackChoiceKey)
     }
 }

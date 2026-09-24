@@ -14,6 +14,8 @@ enum MainMenu {
                 keyEquivalent: ""
             ),
             .separator(),
+            settingsItem(),
+            .separator(),
             NSMenuItem(title: "Hide \(appName)", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h"),
             .separator(),
             NSMenuItem(title: "Quit \(appName)", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"),
@@ -42,6 +44,13 @@ enum MainMenu {
 
         NSApp.mainMenu = main
         NSApp.windowsMenu = windowMenu.submenu
+    }
+
+    private static func settingsItem() -> NSMenuItem {
+        let item = NSMenuItem(title: "Settings…", action: #selector(AppDelegate.showSettings(_:)), keyEquivalent: ",")
+        // macOS 27 gives a "Settings…" item a gear of its own choosing.
+        if #available(macOS 27.0, *) { item.preferredImageVisibility = .hidden }
+        return item
     }
 
     private static func submenu(named name: String, items: [NSMenuItem]) -> NSMenuItem {

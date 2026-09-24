@@ -3,12 +3,13 @@ import OSLog
 
 /// Keeps the priority order the same on every Mac signed in to the same iCloud account. The
 /// override is left out: it is about what this Mac is doing right now.
+@Observable
 final class ICloudSyncCoordinator {
     private let priorityOrder: PriorityOrderStore
     private let defaults: UserDefaults
     private let cloudStore = NSUbiquitousKeyValueStore.default
     private let orderStore: ICloudOrderStore
-    private var tasks: [Task<Void, Never>] = []
+    @ObservationIgnored private var tasks: [Task<Void, Never>] = []
 
     private static let accountDefaultsKey = "ICloudSyncAccount"
     private static let log = Logger(subsystem: "com.buzzingpixel.LocusSoundControl", category: "ICloudSync")
@@ -23,15 +24,35 @@ final class ICloudSyncCoordinator {
         tasks.forEach { $0.cancel() }
     }
 
-    func start() {
-        guard ICloudSyncPreference(defaults: defaults).isEnabled else {
-            // Turning it back on then merges both sides as if neither had seen the other, so
-            // nothing is forgotten here for having gone missing from iCloud while it was off.
-            orderStore.forgetBase()
-            Self.log.info("Sync with iCloud is turned off")
-            return
+    var isEnabled: Bool {
+        get {
+            access(keyPath: \.isEnabled)
+            return ICloudSyncPreference(defaults: defaults).isEnabled
         }
+        set {
+            guard newValue != isEnabled else { return }
+            withMutation(keyPath: \.isEnabled) {
+                ICloudSyncPreference(defaults: defaults).isEnabled = newValue
+            }
+            if newValue { startSyncing() } else { stopSyncing() }
+        }
+    }
 
+    func start() {
+        if isEnabled { startSyncing() } else { stopSyncing() }
+    }
+
+    private func stopSyncing() {
+        tasks.forEach { $0.cancel() }
+        tasks = []
+        // Turning it back on then merges both sides as if neither had seen the other. Otherwise a
+        // device forgotten elsewhere in the meantime would be forgotten here, and a device added
+        // here would be read as forgotten elsewhere.
+        orderStore.forgetBase()
+        Self.log.info("Sync with iCloud is turned off")
+    }
+
+    private func startSyncing() {
         let reasons = NotificationCenter.default
             .notifications(named: NSUbiquitousKeyValueStore.didChangeExternallyNotification)
             .map { $0.userInfo?[NSUbiquitousKeyValueStoreChangeReasonKey] as? Int }

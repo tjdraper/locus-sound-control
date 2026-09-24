@@ -12,6 +12,7 @@ final class MenuBarPresenter: NSObject {
     private let override: OverrideStore
     private let updates: UpdateController
     private let showSoundDevices: () -> Void
+    private let showSettings: () -> Void
 
     private lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private var iconTask: Task<Void, Never>?
@@ -22,13 +23,15 @@ final class MenuBarPresenter: NSObject {
         priorityOrder: PriorityOrderStore,
         override: OverrideStore,
         updates: UpdateController,
-        showSoundDevices: @escaping () -> Void
+        showSoundDevices: @escaping () -> Void,
+        showSettings: @escaping () -> Void
     ) {
         self.outputDevices = outputDevices
         self.priorityOrder = priorityOrder
         self.override = override
         self.updates = updates
         self.showSoundDevices = showSoundDevices
+        self.showSettings = showSettings
     }
 
     deinit {
@@ -95,6 +98,10 @@ final class MenuBarPresenter: NSObject {
         showSoundDevices()
     }
 
+    @objc private func openSettings() {
+        showSettings()
+    }
+
     @objc private func checkForUpdates() {
         updates.checkForUpdates()
     }
@@ -142,8 +149,12 @@ extension MenuBarPresenter: NSMenuDelegate {
         let queued = order.queued.count
         if queued > 0 { soundDevices.badge = .newItems(count: queued) }
         menu.addItem(soundDevices)
+        menu.addItem(item(title: "Settings…", action: #selector(openSettings), keyEquivalent: ","))
 
         menu.addItem(.separator())
+        if let version = updates.waitingUpdateVersion {
+            menu.addItem(item(title: "Install Update \(version)…", action: #selector(checkForUpdates)))
+        }
         let update = item(title: "Check for Updates…", action: #selector(checkForUpdates))
         update.isEnabled = updates.canCheckForUpdates
         menu.addItem(update)
@@ -160,6 +171,8 @@ extension MenuBarPresenter: NSMenuDelegate {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
         item.target = self
         item.isEnabled = true
+        // macOS 27 gives standard titles such as "Settings…" a symbol of its own choosing.
+        if #available(macOS 27.0, *) { item.preferredImageVisibility = .hidden }
         return item
     }
 }

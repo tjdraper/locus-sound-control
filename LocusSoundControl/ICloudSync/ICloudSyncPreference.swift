@@ -12,6 +12,7 @@ nonisolated struct ICloudSyncPreference {
     }
 
     var isEnabled: Bool {
-        defaults.object(forKey: Self.defaultsKey) as? Bool ?? true
+        get { defaults.object(forKey: Self.defaultsKey) as? Bool ?? true }
+        nonmutating set { defaults.set(newValue, forKey: Self.defaultsKey) }
     }
 }

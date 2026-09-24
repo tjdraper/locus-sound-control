@@ -52,13 +52,9 @@ The script reads the channel off the shape of the version, so the two cannot dis
 
 Beta and release share one appcast. A beta item carries `<sparkle:channel>beta</sparkle:channel>`, which Sparkle only offers to updaters that ask for that channel by name, so everyone else sees releases only.
 
-Opt a Mac into betas with:
+Opt a Mac into betas with "Get beta updates" in Settings, which writes the `ReceiveBetaUpdates` default.
 
-```
-defaults write com.buzzingpixel.LocusSoundControl ReceiveBetaUpdates -bool YES
-```
-
-and back out with `-bool NO`. The Settings toggle for this is slice 8; the mechanism behind it works now.
+The first launch of a full release on a Mac that was running a beta asks whether to keep getting betas.
 
 A Mac already running a beta receives the next beta whether or not that default is set. Turning betas off from a beta build would strand it on that build until the next full release, with none of the fixes the betas in between carry.
 

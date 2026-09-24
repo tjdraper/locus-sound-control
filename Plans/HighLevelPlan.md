@@ -116,7 +116,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Two entries holding the same UID are folded together the way a merge by hand folds them, keeping the higher one. This is what happens the first time two Macs that already have orders meet: the built-in speakers, the displays and the AirPods are on both, under different entry ids.
    - "The local seed" is tracked explicitly (`PriorityOrderIsUnarrangedSeed`) and cleared by any edit. It is replaced only on first contact with iCloud, when nothing has been agreed yet. Devices connected here that the synced order does not hold then go to the new device queue.
    - The model match does not run against synced entries. The second-Mac case does not need it: the seed is replaced first, and recording the connected devices afterwards runs `ModelMatch` against the synced entries, which picks up the dock under this Mac's UID. What is left, the same dock recorded separately on two Macs while one was offline, is merged by hand.
-   - Sync is on unless turned off, with the `SyncWithICloud` default until slice 8's toggle. It is read at launch only.
+   - Sync is on unless turned off, with the `SyncWithICloud` default. Slice 8's toggle starts and stops it while the app runs.
    - **The first Mac to sync sets the order.** When two Macs that already have orders meet, iCloud's order wins and the second Mac's own devices are added below it. Update the Mac whose order is right first.
 
 8. **Settings**
@@ -127,7 +127,9 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Sync on/off (slice 7), with a line naming what it carries and what it does not. `ICloudSyncCoordinator` reads the `SyncWithICloud` default once at launch, so the toggle needs it to start and stop while running. Turning it off has to forget what this Mac last agreed with iCloud (`ICloudOrderStore.forgetBase()`), as a launch with sync off already does. Otherwise devices forgotten elsewhere in the meantime would be forgotten here when it comes back on, and devices added here would be read as forgotten elsewhere.
    - Beta updates toggle, bound to the `ReceiveBetaUpdates` default slice 1 already reads, with a line saying betas ship more often and may break. Also the prompt a Mac gets on its first full release after running betas, asking whether to stay on them.
    - Sparkle gentle reminders (https://sparkle-project.org/documentation/gentle-reminders). By default a scheduled check that finds an update throws Sparkle's window to the front at an arbitrary moment, which is exactly the interruption this app exists to avoid. Show a quiet sign instead and open the window when it is clicked. Sparkle logs a warning at launch until this is done.
-   - Whether the update sign can live only in the menu bar icon depends on slice 10's decision about hiding the icon
+   - Whether the update sign can live only in the menu bar icon depends on slice 10's decision about hiding the icon. For now it is an "Install Update…" item in the menu and nothing on the icon.
+   - macOS 27 puts a symbol of its own choosing on menu items with standard titles, a gear on "Settings…" among them. The menu's plain items set `preferredImageVisibility` to `.hidden`, and any new plain item needs the same.
+   - Bluetooth access is read from CoreBluetooth's `CBManager.authorization`, which is the same grant the paired-device read in `OutputDeviceReader` raises. Checked in an installed build. Asking creates a `CBCentralManager` that is never asked to scan, since that is what raises the prompt and reports the answer. A grant re-reads the device list, so the icons update without waiting for a device to connect.
 
 9. **First-run wizard**
 
@@ -139,6 +141,9 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Ask for Bluetooth access here, which is where a permission request is expected and where it costs nothing to explain first (see Decisions). Say what it buys — telling a Bluetooth speaker from headphones — and that it can be skipped.
    - Ask about automatic update checks here. Sparkle otherwise raises its own prompt on the second launch, which for a login-item menu bar app lands at a random moment. Take it over with `SPUUpdaterDelegate.updaterShouldPromptForPermissionToCheckForUpdates`.
    - Each step reflects real current state, so a change made in System Settings updates the wizard
+   - Slice 8 built the pieces: `LaunchAtLoginToggle`, `BluetoothAccessRow` and `UpdateSettingsSection` drop into the checklist as they are. Locus Launcher's `FirstRunStatus` and `UpdateController.defaultToAutomaticChecks()` port across for the rest.
+   - When the Bluetooth prompt comes from `OutputDeviceReader`'s fallback rather than from an Allow… button, the answer is not noticed, so the icons stay as they were until the device list next changes.
+   - The Sound Devices window's one quiet line when Bluetooth access is denied (see Decisions) is not built yet. It is the same state `BluetoothAccessStore` already holds.
 
 10. **Polish and first release**
 

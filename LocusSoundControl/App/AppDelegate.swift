@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let priorityOrder = PriorityOrderStore()
     let override = OverrideStore()
     let dockIcon = DockIconPresence()
+    let launchAtLogin = LaunchAtLoginStore()
 
     private lazy var outputSwitching = OutputSwitchingCoordinator(
         outputDevices: outputDevices,
@@ -13,6 +14,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         override: override
     )
     private lazy var iCloudSync = ICloudSyncCoordinator(priorityOrder: priorityOrder)
+    private lazy var bluetoothAccess = BluetoothAccessStore { [outputDevices] in
+        outputDevices.rereadDevices()
+    }
+    private lazy var settingsWindow = SettingsWindowPresenter(
+        updates: updates,
+        launchAtLogin: launchAtLogin,
+        bluetoothAccess: bluetoothAccess,
+        iCloudSync: iCloudSync,
+        dockIcon: dockIcon
+    )
     private lazy var soundDevicesWindow = SoundDevicesWindowPresenter(
         outputDevices: outputDevices,
         priorityOrder: priorityOrder,
@@ -24,13 +35,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         priorityOrder: priorityOrder,
         override: override,
         updates: updates,
-        showSoundDevices: { [soundDevicesWindow] in soundDevicesWindow.show() }
+        showSoundDevices: { [soundDevicesWindow] in soundDevicesWindow.show() },
+        showSettings: { [settingsWindow] in settingsWindow.show() }
     )
 
     func applicationDidFinishLaunching(_: Notification) {
         MainMenu.install(appName: "Locus Sound Control", fileMenu: soundDevicesWindow.fileMenu)
         // Before the updater starts, since accepting the move relaunches from the new location.
         ApplicationsFolderMoveWorkflow().offerIfNeeded()
+        // Answered before Sparkle's first check, which would otherwise still look for betas.
+        BetaTrackExitWorkflow().offerIfNeeded()
         updates.start()
         outputDevices.start()
         outputSwitching.start()
@@ -43,5 +57,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
         soundDevicesWindow.show()
         return false
+    }
+
+    /// Reached through the responder chain from the main menu's Settings item.
+    @objc func showSettings(_: Any?) {
+        settingsWindow.show()
     }
 }
