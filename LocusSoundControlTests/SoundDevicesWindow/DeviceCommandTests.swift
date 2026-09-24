@@ -22,7 +22,7 @@ struct DeviceCommandTests {
         let titles = titles(for: entries, connected: [])
 
         // Assert
-        #expect(titles == [["Hide 3 Sound Devices"], ["Forget 3 Sound Devices…"]])
+        #expect(titles == [["Merge 3 Sound Devices"], ["Hide 3 Sound Devices"], ["Forget 3 Sound Devices…"]])
     }
 
     @Test
@@ -38,7 +38,7 @@ struct DeviceCommandTests {
         let titles = titles(for: [visible] + hidden, connected: [visible.id])
 
         // Assert
-        #expect(titles == [["Hide Sound Device", "Unhide 2 Sound Devices"]])
+        #expect(titles == [["Merge 3 Sound Devices"], ["Hide Sound Device", "Unhide 2 Sound Devices"]])
     }
 
     @Test
@@ -66,6 +66,31 @@ struct DeviceCommandTests {
 
         // Assert
         #expect(titles == [["Add Sound Device to Priority Order"], ["Hide 2 Sound Devices"]])
+    }
+
+    @Test
+    func twoDevicesConnectedAtOnceCannotBeMerged() {
+        // Arrange
+        let entries = [entry("a"), entry("b")]
+
+        // Act
+        let commands = DeviceCommand.groups(for: entries, connected: Set(entries.map(\.id))).flatMap(\.self)
+
+        // Assert
+        #expect(!commands.contains(.merge(Set(entries.map(\.id)))))
+    }
+
+    @Test
+    func anEntryHoldingSeveralUIDsCanBeSplit() {
+        // Arrange
+        var dock = entry("dock-port-1")
+        dock.uids.insert("dock-port-2")
+
+        // Act
+        let commands = DeviceCommand.groups(for: [dock], connected: [dock.id]).flatMap(\.self)
+
+        // Assert
+        #expect(commands.contains(.split(dock.id)))
     }
 
     @Test

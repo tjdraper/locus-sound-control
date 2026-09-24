@@ -35,6 +35,23 @@ nonisolated struct DeviceEntry: Identifiable, Codable, Equatable, Sendable {
         self.isQueued = isQueued
     }
 
+    /// A new entry for one of this entry's UIDs, starting with everything else this one has.
+    func splittingOff(_ uid: String) -> DeviceEntry {
+        DeviceEntry(copying: self, uid: uid)
+    }
+
+    private init(copying entry: DeviceEntry, uid: String) {
+        id = UUID()
+        name = entry.name
+        modelUID = entry.modelUID
+        transport = entry.transport
+        uids = [uid]
+        automaticSymbolName = entry.automaticSymbolName
+        assignedSymbolName = entry.assignedSymbolName
+        isHidden = entry.isHidden
+        isQueued = entry.isQueued
+    }
+
     var symbolName: String {
         assignedSymbolName ?? automaticSymbolName
     }

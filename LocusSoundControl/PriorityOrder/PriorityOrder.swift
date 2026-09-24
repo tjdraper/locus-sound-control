@@ -104,6 +104,50 @@ nonisolated struct PriorityOrder: Equatable, Sendable {
         entries[index].assignedSymbolName = symbolName
     }
 
+    /// Folds entries the user says are one device into one, keeping the highest placed of them, or
+    /// the first queued one when none is placed. It keeps its slot, and takes on every UID.
+    ///
+    /// It stays hidden only if all of them were, since merging says the device is one in use. It
+    /// keeps its own assigned icon, or takes one of the others' if it had none.
+    ///
+    /// - Returns: The merged entry, or nil when fewer than two of `ids` are in the order.
+    @discardableResult
+    mutating func merge(_ ids: Set<DeviceEntry.ID>) -> DeviceEntry.ID? {
+        let merging = entries.filter { ids.contains($0.id) }
+        guard merging.count > 1,
+              let kept = merging.first(where: { !$0.isQueued }) ?? merging.first,
+              let index = entries.firstIndex(where: { $0.id == kept.id })
+        else { return nil }
+
+        for other in merging where other.id != kept.id {
+            entries[index].uids.formUnion(other.uids)
+            if entries[index].assignedSymbolName == nil {
+                entries[index].assignedSymbolName = other.assignedSymbolName
+            }
+        }
+        entries[index].isHidden = merging.allSatisfy(\.isHidden)
+        entries.removeAll { ids.contains($0.id) && $0.id != kept.id }
+        return kept.id
+    }
+
+    /// Undoes a merge, automatic or by hand, giving each UID an entry of its own directly below
+    /// the original. Nothing records which UIDs were merged together, so it splits all of them.
+    ///
+    /// - Parameter keepingUID: The UID the original entry keeps, which is the connected one, so
+    ///   the device playing now keeps its place, icon and override. The rest start as copies of it.
+    /// - Returns: The entries split off.
+    @discardableResult
+    mutating func split(_ id: DeviceEntry.ID, keepingUID: String?) -> [DeviceEntry.ID] {
+        guard let index = entries.firstIndex(where: { $0.id == id }), entries[index].uids.count > 1 else { return [] }
+
+        let original = entries[index]
+        let kept = keepingUID.flatMap { original.uids.contains($0) ? $0 : nil } ?? original.uids.sorted()[0]
+        let splitOff = original.uids.subtracting([kept]).sorted().map(original.splittingOff)
+        entries[index].uids = [kept]
+        entries.insert(contentsOf: splitOff, at: index + 1)
+        return splitOff.map(\.id)
+    }
+
     /// Deletes the entries outright. A device that comes back is new again.
     mutating func forget(_ ids: Set<DeviceEntry.ID>) {
         entries.removeAll { ids.contains($0.id) }

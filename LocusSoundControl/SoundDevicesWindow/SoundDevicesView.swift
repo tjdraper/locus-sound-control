@@ -115,9 +115,9 @@ struct SoundDevicesView: View {
 
     private var forgetMessage: String {
         guard commands.forgetting.count == 1 else {
-            return "Their places in the priority order and their icons are removed. Any that connect again arrive as new devices."
+            return "Their places in the priority order and their icons are removed. Any that connect again arrive under New Devices."
         }
-        return "Its place in the priority order and its icon are removed. If it connects again, it arrives as a new device."
+        return "Its place in the priority order and its icon are removed. If it connects again, it arrives under New Devices."
     }
 
     private var overridden: DeviceEntry? {

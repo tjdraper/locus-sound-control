@@ -77,6 +77,21 @@ final class PriorityOrderStore {
         save()
     }
 
+    func merge(_ ids: Set<DeviceEntry.ID>) -> DeviceEntry.ID? {
+        guard let merged = order.merge(ids) else { return nil }
+        Self.log.info("Merged \(ids.count) devices into one")
+        save()
+        return merged
+    }
+
+    func split(_ id: DeviceEntry.ID, keepingUID: String?) -> [DeviceEntry.ID] {
+        let splitOff = order.split(id, keepingUID: keepingUID)
+        guard !splitOff.isEmpty else { return [] }
+        Self.log.info("Split one device into \(splitOff.count + 1)")
+        save()
+        return splitOff
+    }
+
     func forget(_ ids: Set<DeviceEntry.ID>) {
         order.forget(ids)
         Self.log.info("Forgot \(ids.count) devices")

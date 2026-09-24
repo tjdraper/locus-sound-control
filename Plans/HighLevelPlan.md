@@ -88,7 +88,11 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - New devices are recorded before a change of output is judged for adoption. Adoption treats a UID no entry holds as a device never seen, so the dock arriving on a new port would otherwise be adopted as an override.
    - Only UIDs arriving from now on are matched. Entries that already exist separately for one device, such as a dock recorded under two ports before the match existed, stay separate until merged by hand.
    - Merge and Split go in `DeviceCommand`, which is where the File menu, the list's context menu and the row buttons all get their commands and titles. Merge needs two or more entries, so it shows in the menus but never as a row button, since those act only on their own row. Split acts on one entry that holds more than one UID, so it can be a row button.
-   - A merge of a hidden entry with a visible one is hidden only if every entry merged was. Merging says these are the same device and one that is in use, and hiding it again is one click. The assigned icon is already settled: last writer wins (see Decisions).
+   - A merge of a hidden entry with a visible one is hidden only if every entry merged was. Merging says these are the same device and one that is in use, and hiding it again is one click. The merged entry keeps its own assigned icon, or takes another's when it has none. "Last writer wins" (see Decisions) has nothing to go on until slice 7 records when an icon was assigned, so the highest entry decides until then.
+   - The highest placed entry is the one kept, in its own slot, or the first queued one when none is placed. So a merge that includes a placed entry comes out placed.
+   - Merge is not offered while more than one of the chosen entries is connected. Two devices present at once cannot be one device, the same guard the automatic match uses, and it keeps an entry to one connected UID.
+   - Nothing records which UIDs were merged together, so Split gives every UID an entry of its own, directly below the original. The original keeps the connected UID, and with it its place, icon and any override. The split-off entries start as copies of it, and the model match does not fold them back, because each UID is then held by an entry.
+   - Every UID an entry holds is listed in its row, the connected one first.
    - Hidden entries keep their slots in the stored order, and dragging moves placed entries around them (`PriorityOrder.movePlaced`). Dropping a device from the queue into the list gives an offset among the placed rows, which `PriorityOrder.place` translates to a position in the full order.
    - Hiding a queued device also sorts it. Hiding is a decision about the device, and a virtual device nobody wants would otherwise keep the badge lit until it is dragged into a list it will never be chosen from.
    - The queue is not a second list. A queued device is an ordinary entry at the end of the stored order with `isQueued` set, so placing it is a move and a flag, and slice 7 syncs the flag like the others. Entries saved before the queue existed decode as placed.
@@ -100,7 +104,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
    Two Macs that move between the same docks, displays and headphones should not have to be taught the same order twice.
 
-   - The priority order, the hidden flag, the assigned icon, and whether a device has been sorted all sync through iCloud key-value storage
+   - The priority order, the hidden flag, the assigned icon, and whether a device is still in the new device queue (`isQueued`) all sync through iCloud key-value storage
    - Forgetting a device syncs too. If the other Mac is offline and has that device connected, it comes back there as a new device, which is self-correcting rather than wrong.
    - The active override never syncs. It is about what you are doing on that Mac right now.
    - Device equivalence is handled by slice 6's matching and merging. This slice syncs the result, so a merge made on one Mac holds on the other.
@@ -135,6 +139,8 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Website download page, v1
    - Decide whether the menu bar icon can be hidden. macOS's own "Allow in the Menu Bar" covers hiding it, but this app's only affordance for setting an override is that menu, so hiding it removes a feature rather than just an indicator.
    - Remove the setup checklist row from Settings if it was added there. The menu still opens it.
+   - Decide whether each Sound Devices row keeps showing its transport, UIDs and model identifier. They went in as a way to read identities against a real setup, and are now also how a merge the app made on its own is seen, so dropping them needs another way to show that.
+   - The override's accent plate draws `display` with its screen filled in, because a single palette color flattens the symbol's layers. Drawing the template's shape and filling it, as the badge does for the plain glyph, would fix it.
 
 ## Decisions
 
@@ -142,7 +148,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
   That window lasts until three seconds after the list settles. Too short and macOS's late picks become overrides; too long and a real choice made right after plugging something in gets reverted. Every adoption and every suppressed change is logged with how long after the settle it came, so the number can be tuned from real cases rather than guessed.
 
-  A device never seen before is adopted even inside the window. macOS switching to a device the moment it first connects is the only way it gets played at all, since it arrives at the bottom of the order. Known devices are not, because adopting macOS's switch to reconnecting AirPods would replace an override with them, which is the original complaint.
+  A device never seen before is adopted even inside the window. macOS switching to a device the moment it first connects is the only way it gets played at all, since it arrives in the new device queue, where it is never chosen automatically. Known devices are not, because adopting macOS's switch to reconnecting AirPods would replace an override with them, which is the original complaint.
 
 - **A connecting device takes over unless you chose the current one.** A higher-priority device arriving switches output immediately, even mid-playback — that is what a priority order means. The exception is an active override, which holds until it is cancelled or its device disappears. So the override is not just a way to depart from the order for a moment; it is how the user says "I am deliberately listening here, leave it alone." Since a change made in Control Center is adopted as an override too, that statement can be made from outside the app as well as inside it. This is the answer to the original complaint: AirPods reconnecting take over when nothing was chosen, and do not when something was.
 
@@ -194,7 +200,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 
 - **Reading the device history needs no developer tools.** `/Library/Preferences/Audio/com.apple.audio.SystemSettings.plist` is world-readable and `plutil` is stock, so the history script runs on a Mac that has never had Xcode or the Command Line Tools on it. The Swift dump shows more per device — model UID, manufacturer, which device is current — but only covers what is attached right now, and needs the Swift compiler. Use the history script for comparing two Macs and the Swift one for looking at a live setup.
 
-- **The order is last-writer-wins; per-device flags merge.** An ordered list cannot be merged sensibly. A drag touches many positions at once, so per-position keys would still produce interleavings nobody chose, which is worse than losing a reorder. The whole order is one value with a timestamp, and reordering is rare and deliberate enough that redoing it costs seconds. The per-device flags — hidden, sorted, forgotten, assigned icon — are independent, so each device gets its own key and edits on two Macs merge cleanly. The assigned icon needs no machinery of its own for this reason; it is one more key per device, and a merge in slice 6 resolves two assignments the same last-writer way. This is the same split locus-launcher uses for hot keys.
+- **The order is last-writer-wins; per-device flags merge.** An ordered list cannot be merged sensibly. A drag touches many positions at once, so per-position keys would still produce interleavings nobody chose, which is worse than losing a reorder. The whole order is one value with a timestamp, and reordering is rare and deliberate enough that redoing it costs seconds. The per-device flags — hidden, queued, forgotten, assigned icon — are independent, so each device gets its own key and edits on two Macs merge cleanly. The assigned icon needs no machinery of its own for this reason; it is one more key per device, and a merge can then resolve two assignments the same last-writer way. Until it has timestamps, slice 6's merge keeps the highest entry's icon. This is the same split locus-launcher uses for hot keys.
 
 - **The icon is guessed from the most specific thing known about a device.** Three signals, in order, each falling through to the next:
 

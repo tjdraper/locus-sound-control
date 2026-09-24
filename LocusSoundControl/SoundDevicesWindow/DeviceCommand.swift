@@ -7,6 +7,13 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
     /// same with a chosen position; this is the way that does not need a pointer.
     case place(Set<DeviceEntry.ID>)
     case changeIcon(DeviceEntry.ID)
+
+    /// These are one device. Only in the menus: a row's buttons act on that row alone.
+    case merge(Set<DeviceEntry.ID>)
+
+    /// These are not one device, however it was decided that they were.
+    case split(DeviceEntry.ID)
+
     case hide(Set<DeviceEntry.ID>)
     case unhide(Set<DeviceEntry.ID>)
     case forget(Set<DeviceEntry.ID>)
@@ -15,6 +22,8 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
         switch self {
         case let .place(ids): "Add \(Self.soundDevices(ids.count)) to Priority Order"
         case .changeIcon: Self.changeIconTitle
+        case let .merge(ids): Self.mergeTitle(count: ids.count)
+        case .split: Self.splitTitle
         case let .hide(ids): Self.hideTitle(count: ids.count)
         case let .unhide(ids): "Unhide \(Self.soundDevices(ids.count))"
         case let .forget(ids): Self.forgetTitle(count: ids.count)
@@ -25,6 +34,8 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
         switch self {
         case .place: "arrow.down.to.line"
         case .changeIcon: "paintpalette"
+        case .merge: "arrow.triangle.merge"
+        case .split: "arrow.triangle.branch"
         case .hide: "eye.slash"
         case .unhide: "eye"
         case .forget: "trash"
@@ -33,13 +44,19 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
 
     /// Shown disabled in the File menu while nothing is selected, so the commands can be found
     /// before they can be used.
-    static let nothingSelectedTitles = [[changeIconTitle], [hideTitle(count: 1)], [forgetTitle(count: 1)]]
+    static let nothingSelectedTitles = [
+        [changeIconTitle],
+        [mergeTitle(count: 1), splitTitle],
+        [hideTitle(count: 1)],
+        [forgetTitle(count: 1)],
+    ]
 
     /// The commands for a selection, in groups a menu separates. Hiding and unhiding count only the
     /// devices they would change, so a mixed selection offers both, each with its own count.
     ///
     /// - Parameter connected: which of `entries` are connected right now. Forgetting a connected
-    ///   device would record it again straight away, so forget is only offered when none are.
+    ///   device would record it again straight away, so forget is only offered when none are. Two
+    ///   devices connected at once cannot be one device, so merge is only offered when at most one is.
     static func groups(for entries: [DeviceEntry], connected: Set<DeviceEntry.ID>) -> [[DeviceCommand]] {
         var groups: [[DeviceCommand]] = []
 
@@ -48,6 +65,12 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
 
         if entries.count == 1, let entry = entries.first {
             groups.append([.changeIcon(entry.id)])
+        }
+
+        if entries.count > 1, entries.count(where: { connected.contains($0.id) }) <= 1 {
+            groups.append([.merge(Set(entries.map(\.id)))])
+        } else if entries.count == 1, let entry = entries.first, entry.uids.count > 1 {
+            groups.append([.split(entry.id)])
         }
 
         let visible = Set(entries.filter { !$0.isHidden }.map(\.id))
@@ -64,6 +87,13 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
     }
 
     private static let changeIconTitle = "Change Icon…"
+
+    private static let splitTitle = "Split into Separate Devices"
+
+    /// Always counted, since merging one device means nothing.
+    private static func mergeTitle(count: Int) -> String {
+        count > 1 ? "Merge \(count) Sound Devices" : "Merge Sound Devices"
+    }
 
     private static func hideTitle(count: Int) -> String {
         "Hide \(soundDevices(count))"

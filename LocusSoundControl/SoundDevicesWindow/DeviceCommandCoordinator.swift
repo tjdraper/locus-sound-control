@@ -33,6 +33,8 @@ final class DeviceCommandCoordinator {
         switch command {
         case let .place(ids): place(ids, atPlacedOffset: priorityOrder.order.placed.count)
         case let .changeIcon(id): choosingIconFor = id
+        case let .merge(ids): merge(ids)
+        case let .split(id): split(id)
         case let .hide(ids): hide(ids)
         case let .unhide(ids): priorityOrder.setHidden(false, for: ids)
         case let .forget(ids): forgetting = ids
@@ -45,6 +47,17 @@ final class DeviceCommandCoordinator {
         for (index, entry) in queued.enumerated() {
             priorityOrder.place(entry.id, atPlacedOffset: offset + index)
         }
+    }
+
+    private func merge(_ ids: Set<DeviceEntry.ID>) {
+        guard let merged = priorityOrder.merge(ids) else { return }
+        selection = [merged]
+    }
+
+    private func split(_ id: DeviceEntry.ID) {
+        guard let entry = priorityOrder.order.entries.first(where: { $0.id == id }) else { return }
+        let splitOff = priorityOrder.split(id, keepingUID: connectedDevice(for: entry)?.uid)
+        selection = Set([id] + splitOff)
     }
 
     func chooseIcon(_ symbolName: String?, for id: DeviceEntry.ID) {

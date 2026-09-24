@@ -26,12 +26,19 @@ struct OutputDeviceRow: View {
                     Text(entry.name)
                         .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
 
-                    // The identifiers slice 6 matches on, shown because they are the whole reason
-                    // that slice is hard and this is where they can be read against a real setup.
+                    // The identifiers devices are matched on, shown because they are the whole
+                    // reason matching is hard and this is where they can be read against a real
+                    // setup. Every UID an entry covers is listed, so a merge the app made on its
+                    // own is visible rather than guessed at.
                     // Not selectable: selecting text starts on the same drag that reorders the row.
-                    Text("\(entry.transport.displayName) · \(uids)")
+                    Text([entry.transport.displayName, uids.first].compactMap(\.self).joined(separator: " · "))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    ForEach(uids.dropFirst(), id: \.self) { uid in
+                        Text(uid)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
 
                     if let modelUID = entry.modelUID {
                         Text(modelUID)
@@ -85,8 +92,10 @@ struct OutputDeviceRow: View {
         isCurrentOutput && !isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary)
     }
 
-    private var uids: String {
-        device?.uid ?? entry.uids.sorted().joined(separator: ", ")
+    /// The connected one first.
+    private var uids: [String] {
+        let rest = entry.uids.subtracting([device?.uid].compactMap(\.self)).sorted()
+        return (device.map { [$0.uid] } ?? []) + rest
     }
 
     /// Said in words so that a device's state never rests on dimming alone.
