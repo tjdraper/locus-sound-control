@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// One device in the priority order, remembered whether or not it is connected.
@@ -23,8 +24,8 @@ nonisolated struct DeviceEntry: Identifiable, Codable, Equatable, Sendable {
     /// places it in the order or hides it.
     var isQueued: Bool
 
-    init(device: AudioOutputDevice, isQueued: Bool = false) {
-        id = UUID()
+    init(device: AudioOutputDevice, id: UUID? = nil, isQueued: Bool = false) {
+        self.id = id ?? Self.id(forUID: device.uid)
         name = device.name
         modelUID = device.modelUID
         transport = device.transport
@@ -50,6 +51,16 @@ nonisolated struct DeviceEntry: Identifiable, Codable, Equatable, Sendable {
         assignedSymbolName = entry.assignedSymbolName
         isHidden = entry.isHidden
         isQueued = entry.isQueued
+    }
+
+    /// The same on every Mac, so two Macs that meet a device before either has synced it make one
+    /// entry between them rather than two.
+    static func id(forUID uid: String) -> UUID {
+        var bytes = Array(SHA256.hash(data: Data(uid.utf8)).prefix(16))
+        // Version 8, which RFC 9562 gives to a UUID built from a SHA-256 hash (appendix B.2).
+        bytes[6] = (bytes[6] & 0x0F) | 0x80
+        bytes[8] = (bytes[8] & 0x3F) | 0x80
+        return UUID(uuid: bytes.withUnsafeBytes { $0.loadUnaligned(as: uuid_t.self) })
     }
 
     var symbolName: String {

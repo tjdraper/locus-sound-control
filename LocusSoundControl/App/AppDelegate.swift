@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         priorityOrder: priorityOrder,
         override: override
     )
+    private lazy var iCloudSync = ICloudSyncCoordinator(priorityOrder: priorityOrder)
     private lazy var soundDevicesWindow = SoundDevicesWindowPresenter(
         outputDevices: outputDevices,
         priorityOrder: priorityOrder,
@@ -33,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updates.start()
         outputDevices.start()
         outputSwitching.start()
+        iCloudSync.start()
         menuBar.start()
     }
 

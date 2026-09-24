@@ -42,7 +42,11 @@ nonisolated struct PriorityOrder: Equatable, Sendable {
                 entries[index].refresh(from: device)
                 recorded.recognized += 1
             } else {
-                entries.append(DeviceEntry(device: device, isQueued: true))
+                // An entry keeps its id when a split leaves it holding a different UID from the
+                // one it was made for, so the id this UID would get can already be taken.
+                let id = DeviceEntry.id(forUID: device.uid)
+                let isTaken = entries.contains { $0.id == id }
+                entries.append(DeviceEntry(device: device, id: isTaken ? UUID() : id, isQueued: true))
                 recorded.queued += 1
             }
         }

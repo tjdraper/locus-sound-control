@@ -242,6 +242,37 @@ struct PriorityOrderTests {
     }
 
     @Test
+    func twoMacsRecordingOneDeviceGiveItTheSameEntry() {
+        // Arrange
+        var mine = PriorityOrder.seeded(from: [device("speakers")], currentOutputUID: nil)
+        var theirs = PriorityOrder.seeded(from: [device("display")], currentOutputUID: nil)
+
+        // Act
+        mine.record([device("headset")])
+        theirs.record([device("headset")])
+
+        // Assert
+        #expect(mine.entries[1].id == theirs.entries[1].id)
+    }
+
+    @Test
+    func aNewDeviceWhoseEntryIDIsTakenGetsAnotherOne() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["dock-port-1", "dock-port-2"].map { device($0) }, currentOutputUID: nil)
+        let original = order.entries[0].id
+        order.merge(Set(order.entries.map(\.id)))
+        let splitOff = order.split(original, keepingUID: "dock-port-2")
+        order.forget(Set(splitOff))
+
+        // Act
+        order.record([device("dock-port-1")])
+
+        // Assert
+        #expect(order.entries.map(\.uids) == [["dock-port-2"], ["dock-port-1"]])
+        #expect(Set(order.entries.map(\.id)).count == 2)
+    }
+
+    @Test
     func aForgottenDeviceIsQueuedAgainWhenItReturns() {
         // Arrange
         var order = PriorityOrder.seeded(from: ["a", "b"].map { device($0) }, currentOutputUID: nil)
@@ -254,7 +285,6 @@ struct PriorityOrderTests {
 
         // Assert
         #expect(order.entries.map(\.uids) == [["b"], ["a"]])
-        #expect(order.entries[1].id != forgotten)
         #expect(order.entries[1].assignedSymbolName == nil)
         #expect(order.entries[1].isQueued)
     }
