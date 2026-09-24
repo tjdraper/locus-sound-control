@@ -43,13 +43,15 @@ final class PriorityOrderStore {
         }
 
         var next = order
-        next.record(connected)
+        let recorded = next.record(connected)
         // Assigning an equal order would still wake everything observing it, the switching engine included.
         guard next != order else { return }
 
-        let added = next.entries.count - order.entries.count
         order = next
-        if added > 0 { Self.log.info("Queued \(added) new outputs") }
+        if recorded.recognized > 0 {
+            Self.log.info("Recognized \(recorded.recognized) outputs under new UIDs as known devices, by their model")
+        }
+        if recorded.queued > 0 { Self.log.info("Queued \(recorded.queued) new outputs") }
         save()
     }
 

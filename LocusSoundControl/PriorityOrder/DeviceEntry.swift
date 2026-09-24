@@ -3,8 +3,7 @@ import Foundation
 /// One device in the priority order, remembered whether or not it is connected.
 ///
 /// It holds a set of UIDs rather than one, because a UID is not a device: a dock takes a new one
-/// for every port it is plugged into. Slice 6 folds those into one entry; the shape is stored from
-/// the start so that nothing already saved has to be migrated then.
+/// for every port it is plugged into, and `ModelMatch` folds each of them into the one entry.
 nonisolated struct DeviceEntry: Identifiable, Codable, Equatable, Sendable {
     let id: UUID
     var name: String

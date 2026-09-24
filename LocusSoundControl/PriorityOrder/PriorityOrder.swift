@@ -21,16 +21,32 @@ nonisolated struct PriorityOrder: Equatable, Sendable {
         index(ofUID: uid).map { entries[$0] }
     }
 
+    struct Recorded: Equatable {
+        /// New UIDs taken to be devices already remembered, by their model.
+        var recognized = 0
+        var queued = 0
+    }
+
     /// Devices never seen before go into the new device queue rather than the order, so plugging
-    /// something in cannot take the output from a device the user placed.
-    mutating func record(_ connected: [AudioOutputDevice]) {
+    /// something in cannot take the output from a device the user placed. A known device under a
+    /// new UID keeps its entry, which takes the UID on.
+    @discardableResult
+    mutating func record(_ connected: [AudioOutputDevice]) -> Recorded {
+        var recorded = Recorded()
+        let connectedUIDs = Set(connected.map(\.uid))
         for device in connected where !device.hasPerSessionIdentity {
             if let index = index(ofUID: device.uid) {
                 entries[index].refresh(from: device)
+            } else if let index = ModelMatch.entryIndex(for: device, in: entries, connectedUIDs: connectedUIDs) {
+                entries[index].uids.insert(device.uid)
+                entries[index].refresh(from: device)
+                recorded.recognized += 1
             } else {
                 entries.append(DeviceEntry(device: device, isQueued: true))
+                recorded.queued += 1
             }
         }
+        return recorded
     }
 
     var queued: [DeviceEntry] {

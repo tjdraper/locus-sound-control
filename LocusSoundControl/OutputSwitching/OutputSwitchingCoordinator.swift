@@ -72,11 +72,17 @@ final class OutputSwitchingCoordinator {
             return
         }
 
+        // Before adoption, which treats a UID no entry holds as a device never seen. A known device
+        // under a new UID, such as a dock moved to another port, has to be known by then.
+        let order = priorityOrder.order
+        priorityOrder.record(devices, currentOutputUID: outputDevices.currentOutputUID)
+        guard priorityOrder.order == order else { return }
+
         let adoption = OutsideChangeAdoption.decide(
             current: outputDevices.currentDevice,
             expectedUID: expectedUID,
             overrideUID: override.uid,
-            order: priorityOrder.order,
+            order: order,
             sinceSettle: sinceSettle
         )
         if case let .adopt(reason) = adoption, let current = outputDevices.currentDevice {
@@ -86,10 +92,6 @@ final class OutputSwitchingCoordinator {
             )
             return
         }
-
-        let order = priorityOrder.order
-        priorityOrder.record(devices, currentOutputUID: outputDevices.currentOutputUID)
-        guard priorityOrder.order == order else { return }
 
         let inputs = Decided(devices: devices, order: order, overrideUID: override.uid)
         if adoption == .leaveToPriority {
