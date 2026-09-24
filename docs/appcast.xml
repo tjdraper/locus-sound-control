@@ -3,6 +3,17 @@
     <channel>
         <title>Locus Sound Control</title>
         <item>
+            <title>2026.0.6</title>
+            <pubDate>Thu, 24 Sep 2026 09:53:57 -0500</pubDate>
+            <link>https://github.com/tjdraper/locus-sound-control</link>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>2026.0.6</sparkle:version>
+            <sparkle:shortVersionString>2026.0.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://tjdraper.github.io/locus-sound-control/LocusSoundControl-2026.0.6.md</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/tjdraper/locus-sound-control/releases/download/v2026.0.6/LocusSoundControl-2026.0.6.zip" length="2906755" type="application/octet-stream" sparkle:edSignature="KaL1+wJG9oqABMv12stDcRfxTzsp/vLxD5PE1Icvpn+bffYe5X51lVTZjW54hsQp41TFDXxR7qUWRdRLqftGBA=="/>
+        </item>
+        <item>
             <title>2026.0.5</title>
             <pubDate>Wed, 23 Sep 2026 19:35:24 -0500</pubDate>
             <link>https://github.com/tjdraper/locus-sound-control</link>
@@ -23,17 +34,6 @@
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
             <sparkle:releaseNotesLink>https://tjdraper.github.io/locus-sound-control/LocusSoundControl-2026.0.4.md</sparkle:releaseNotesLink>
             <enclosure url="https://github.com/tjdraper/locus-sound-control/releases/download/v2026.0.4/LocusSoundControl-2026.0.4.zip" length="2638635" type="application/octet-stream" sparkle:edSignature="wgy+7IWh4SsDcUQt0qMHgtC2DpeA4rOoBQkMDecDK9Gkf08GIG4lIUMrzKANQElAGdKw8ehjji5B3S4D23peBQ=="/>
-        </item>
-        <item>
-            <title>2026.0.3</title>
-            <pubDate>Mon, 21 Sep 2026 15:01:24 -0500</pubDate>
-            <link>https://github.com/tjdraper/locus-sound-control</link>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>2026.0.3</sparkle:version>
-            <sparkle:shortVersionString>2026.0.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:releaseNotesLink>https://tjdraper.github.io/locus-sound-control/LocusSoundControl-2026.0.3.md</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/tjdraper/locus-sound-control/releases/download/v2026.0.3/LocusSoundControl-2026.0.3.zip" length="2560331" type="application/octet-stream" sparkle:edSignature="XJ9nPloarMg1vAE9uikQbofLRK+pKr6eQKN0fVhUoM3KDEEyDXy1KzeFzqWKO9z0tUJek29JDDEZe5UAc5+/Ag=="/>
         </item>
     </channel>
 </rss>
