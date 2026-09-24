@@ -59,6 +59,7 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - The one exception is a device never seen before. macOS switches to a device when it first connects, and that is adopted, so a new device plays instead of being switched away from straight back to whatever sits above it in the order. A known device arriving goes through priority, which is what stops reconnecting AirPods from replacing an override.
    - The override survives quit and restart
    - When the overridden device disappears, the override is cleared and priority takes over. It does not come back when the device reconnects.
+   - The three-second adoption window is a first guess. The log records the timing of every adopted or suppressed change, so it can be tuned from real cases.
 
 5. **Hidden and forgotten devices**
 
@@ -67,6 +68,10 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Hidden devices stay in the Sound Devices window in their own area, and can be unhidden
    - Forget a device that is not currently connected: its record is deleted. If it ever reconnects it arrives as a new device again.
    - Forget is only offered for disconnected devices, since forgetting a connected one would immediately re-add it
+   - Hiding and overrides meet here. The resolver lets an override win even on a hidden device, and a change made in Control Center to a hidden device is adopted like any other. Decide whether hiding the overridden device cancels its override.
+   - The menu's device rows and its override banner draw `AudioOutputDevice.symbolName`, the guessed icon, so an assigned icon will not show there until they read the entry's `symbolName` instead. The menu bar icon and the Sound Devices window already use the entry.
+   - SwiftUI's `Image(systemName:)` draws nothing for a name that does not resolve, so the Sound Devices rows and override panel need the same fallback to the generic speaker that the AppKit menu already has.
+   - The Sound Devices list already has row selection and an empty `contextMenu(forSelectionType:)` (its primary action is the double-click override), which is the natural home for Hide, Forget and the icon picker.
 
 6. **New device queue and badge**
 
