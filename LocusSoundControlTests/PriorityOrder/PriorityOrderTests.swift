@@ -27,7 +27,16 @@ struct PriorityOrderTests {
     }
 
     @Test
-    func aDeviceNeverSeenBeforeGoesToTheBottom() {
+    func seededDevicesAreAlreadyPlaced() {
+        // Act
+        let order = PriorityOrder.seeded(from: [device("speakers"), device("display")], currentOutputUID: nil)
+
+        // Assert
+        #expect(order.queued.isEmpty)
+    }
+
+    @Test
+    func aDeviceNeverSeenBeforeIsQueued() {
         // Arrange
         var order = PriorityOrder.seeded(from: [device("speakers"), device("display")], currentOutputUID: "display")
 
@@ -35,7 +44,93 @@ struct PriorityOrderTests {
         order.record([device("speakers"), device("airpods")])
 
         // Assert
-        #expect(order.entries.map(\.uids) == [["display"], ["speakers"], ["airpods"]])
+        #expect(order.queued.map(\.uids) == [["airpods"]])
+        #expect(order.placed.map(\.uids) == [["display"], ["speakers"]])
+    }
+
+    @Test
+    func aScreenSharingOutputIsNeverRecorded() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: [device("speakers")], currentOutputUID: nil)
+
+        // Act
+        order.record([device("speakers"), device("0A691CF0-8F76-4742-9630-0DE381C1E51E-237265392966375-screen")])
+
+        // Assert
+        #expect(order.entries.map(\.uids) == [["speakers"]])
+    }
+
+    @Test
+    func placingAQueuedDeviceCountsOnlyThePlacedRows() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["a", "hidden", "b"].map { device($0) }, currentOutputUID: nil)
+        order.setHidden(true, for: [order.entries[1].id])
+        order.record([device("new")])
+        let new = order.entries[3].id
+
+        // Act
+        order.place(new, atPlacedOffset: 1)
+
+        // Assert
+        #expect(order.entries.map(\.uids) == [["a"], ["hidden"], ["new"], ["b"]])
+        #expect(order.queued.isEmpty)
+    }
+
+    @Test
+    func placingPastTheLastRowPutsItBelowTheLastPlacedDevice() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["a", "b"].map { device($0) }, currentOutputUID: nil)
+        order.record([device("first-new"), device("second-new")])
+
+        // Act
+        order.place(order.entries[3].id, atPlacedOffset: 2)
+
+        // Assert
+        #expect(order.entries.map(\.uids) == [["a"], ["b"], ["second-new"], ["first-new"]])
+        #expect(order.queued.map(\.uids) == [["first-new"]])
+    }
+
+    @Test
+    func movingPlacedDevicesLeavesTheQueueAlone() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["a", "b"].map { device($0) }, currentOutputUID: nil)
+        order.record([device("new")])
+
+        // Act
+        order.movePlaced(fromOffsets: [1], toOffset: 0)
+
+        // Assert
+        #expect(order.placed.map(\.uids) == [["b"], ["a"]])
+        #expect(order.queued.map(\.uids) == [["new"]])
+    }
+
+    @Test
+    func hidingAQueuedDeviceTakesItOutOfTheQueue() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: [device("a")], currentOutputUID: nil)
+        order.record([device("virtual")])
+
+        // Act
+        order.setHidden(true, for: [order.entries[1].id])
+
+        // Assert
+        #expect(order.queued.isEmpty)
+        #expect(order.entries[1].isHidden)
+    }
+
+    @Test
+    func anEntrySavedBeforeTheQueueExistedIsPlaced() throws {
+        // Arrange
+        let saved = Data("""
+            [{"id":"8C1F5E0A-2B5D-4D7A-9F3E-1A2B3C4D5E6F","name":"Speakers","transport":"builtIn",\
+            "uids":["BuiltInSpeakerDevice"],"automaticSymbolName":"hifispeaker","isHidden":false}]
+            """.utf8)
+
+        // Act
+        let entries = try JSONDecoder().decode([DeviceEntry].self, from: saved)
+
+        // Assert
+        #expect(entries.map(\.isQueued) == [false])
     }
 
     @Test
@@ -125,7 +220,7 @@ struct PriorityOrderTests {
         order.setHidden(true, for: [order.entries[1].id])
 
         // Act
-        order.moveVisible(fromOffsets: [2], toOffset: 0)
+        order.movePlaced(fromOffsets: [2], toOffset: 0)
 
         // Assert
         #expect(order.entries.map(\.uids) == [["c"], ["hidden"], ["a"], ["b"]])
@@ -147,7 +242,7 @@ struct PriorityOrderTests {
     }
 
     @Test
-    func aForgottenDeviceIsNewAgainWhenItReturns() {
+    func aForgottenDeviceIsQueuedAgainWhenItReturns() {
         // Arrange
         var order = PriorityOrder.seeded(from: ["a", "b"].map { device($0) }, currentOutputUID: nil)
         let forgotten = order.entries[0].id
@@ -161,6 +256,7 @@ struct PriorityOrderTests {
         #expect(order.entries.map(\.uids) == [["b"], ["a"]])
         #expect(order.entries[1].id != forgotten)
         #expect(order.entries[1].assignedSymbolName == nil)
+        #expect(order.entries[1].isQueued)
     }
 
     @Test

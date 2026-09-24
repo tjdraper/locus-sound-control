@@ -10,7 +10,7 @@ final class PriorityOrderStore {
     @ObservationIgnored private let defaults: UserDefaults
 
     /// Only a Mac that has never saved an order is seeded. An empty saved order is still the
-    /// user's, and slice 6 sends the devices that arrive after it to the new device queue.
+    /// user's, and the devices that arrive after it go to the new device queue.
     @ObservationIgnored private var hasSavedOrder: Bool
 
     private static let key = "PriorityOrder"
@@ -49,12 +49,18 @@ final class PriorityOrderStore {
 
         let added = next.entries.count - order.entries.count
         order = next
-        if added > 0 { Self.log.info("Added \(added) new outputs to the bottom of the priority order") }
+        if added > 0 { Self.log.info("Queued \(added) new outputs") }
         save()
     }
 
-    func moveVisible(fromOffsets source: IndexSet, toOffset destination: Int) {
-        order.moveVisible(fromOffsets: source, toOffset: destination)
+    func movePlaced(fromOffsets source: IndexSet, toOffset destination: Int) {
+        order.movePlaced(fromOffsets: source, toOffset: destination)
+        save()
+    }
+
+    func place(_ id: DeviceEntry.ID, atPlacedOffset offset: Int) {
+        order.place(id, atPlacedOffset: offset)
+        Self.log.info("Placed a queued device at priority \(offset + 1) of \(self.order.placed.count)")
         save()
     }
 

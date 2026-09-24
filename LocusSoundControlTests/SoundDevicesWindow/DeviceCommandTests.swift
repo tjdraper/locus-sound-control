@@ -55,6 +55,20 @@ struct DeviceCommandTests {
     }
 
     @Test
+    func aQueuedDeviceCanBeAddedToThePriorityOrder() {
+        // Arrange
+        var queued = entry("queued")
+        queued.isQueued = true
+        let placed = entry("placed")
+
+        // Act
+        let titles = titles(for: [queued, placed], connected: [queued.id, placed.id])
+
+        // Assert
+        #expect(titles == [["Add Sound Device to Priority Order"], ["Hide 2 Sound Devices"]])
+    }
+
+    @Test
     func nothingSelectedOffersNothing() {
         // Act
         let groups = DeviceCommand.groups(for: [], connected: [])

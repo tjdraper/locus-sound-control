@@ -20,9 +20,10 @@ nonisolated enum OutsideChangeAdoption {
     enum Reason: Equatable {
         case outsideChange
 
-        /// macOS switches to a device the moment it first connects. Adopting that is what lets a
-        /// device nobody has placed in the order play at all, where priority would switch away
-        /// from it straight back to whatever was above it.
+        /// macOS switches to a device the moment it connects. Adopting that is what lets a device
+        /// nobody has placed in the order play at all, since a queued device is never chosen
+        /// automatically. It holds each time the device returns until it is placed, not only the
+        /// first time, so a device behaves the same until the user decides where it goes.
         case newDevice
     }
 
@@ -47,7 +48,7 @@ nonisolated enum OutsideChangeAdoption {
         guard let current, let expectedUID, current.uid != expectedUID, current.uid != overrideUID
         else { return .nothingToAdopt }
 
-        if order.index(ofUID: current.uid) == nil { return .adopt(.newDevice) }
+        if order.entry(forUID: current.uid)?.isQueued != false { return .adopt(.newDevice) }
         if let sinceSettle, sinceSettle < settleGrace { return .leaveToPriority }
         return .adopt(.outsideChange)
     }

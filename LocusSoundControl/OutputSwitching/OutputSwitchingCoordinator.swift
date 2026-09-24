@@ -113,7 +113,7 @@ final class OutputSwitchingCoordinator {
             expectedUID = outputDevices.currentOutputUID
             Self.log.info(
                 """
-                None of the \(order.entries.count) devices in the priority order is both connected and not hidden, \
+                None of the \(order.entries.count) devices in the priority order is connected, placed and not hidden, \
                 so the output is left alone
                 """
             )
@@ -146,7 +146,7 @@ final class OutputSwitchingCoordinator {
     private static func describe(_ reason: OutsideChangeAdoption.Reason) -> String {
         switch reason {
         case .outsideChange: "The output was changed outside the app"
-        case .newDevice: "macOS switched to a device never seen before"
+        case .newDevice: "macOS switched to a device not yet placed in the order"
         }
     }
 

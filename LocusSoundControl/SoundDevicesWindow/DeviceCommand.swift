@@ -3,6 +3,9 @@ import Foundation
 /// Something that can be done to the devices selected in the Sound Devices window. The File menu
 /// and the list's context menu both offer these, so each is named once, here.
 nonisolated enum DeviceCommand: Hashable, Sendable {
+    /// Out of the new device queue and onto the bottom of the priority order. Dragging does the
+    /// same with a chosen position; this is the way that does not need a pointer.
+    case place(Set<DeviceEntry.ID>)
     case changeIcon(DeviceEntry.ID)
     case hide(Set<DeviceEntry.ID>)
     case unhide(Set<DeviceEntry.ID>)
@@ -10,6 +13,7 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
 
     var title: String {
         switch self {
+        case let .place(ids): "Add \(Self.soundDevices(ids.count)) to Priority Order"
         case .changeIcon: Self.changeIconTitle
         case let .hide(ids): Self.hideTitle(count: ids.count)
         case let .unhide(ids): "Unhide \(Self.soundDevices(ids.count))"
@@ -19,6 +23,7 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
 
     var symbolName: String {
         switch self {
+        case .place: "arrow.down.to.line"
         case .changeIcon: "paintpalette"
         case .hide: "eye.slash"
         case .unhide: "eye"
@@ -37,6 +42,9 @@ nonisolated enum DeviceCommand: Hashable, Sendable {
     ///   device would record it again straight away, so forget is only offered when none are.
     static func groups(for entries: [DeviceEntry], connected: Set<DeviceEntry.ID>) -> [[DeviceCommand]] {
         var groups: [[DeviceCommand]] = []
+
+        let queued = Set(entries.filter(\.isQueued).map(\.id))
+        if !queued.isEmpty { groups.append([.place(queued)]) }
 
         if entries.count == 1, let entry = entries.first {
             groups.append([.changeIcon(entry.id)])

@@ -9,10 +9,24 @@ struct SoundDevicesView: View {
     var body: some View {
         @Bindable var commands = commands
         List(selection: $commands.selection) {
-            ForEach(entries.filter { !$0.isHidden }) { entry in
+            let queued = priorityOrder.order.queued
+            if !queued.isEmpty {
+                NewDevicesHeader()
+                ForEach(queued) { entry in
+                    row(for: entry)
+                        .itemProvider { NSItemProvider(object: entry.id.uuidString as NSString) }
+                }
+            }
+
+            PriorityOrderHeader()
+            ForEach(priorityOrder.order.placed) { entry in
                 row(for: entry)
             }
-            .onMove { priorityOrder.moveVisible(fromOffsets: $0, toOffset: $1) }
+            .onMove { priorityOrder.movePlaced(fromOffsets: $0, toOffset: $1) }
+            // Anything that is not the ID of a queued device is ignored, dragged-in text included.
+            .dropDestination(for: String.self) { payloads, offset in
+                commands.place(payloads.compactMap(UUID.init(uuidString:)), atPlacedOffset: offset)
+            }
 
             let hidden = entries.filter(\.isHidden)
             if !hidden.isEmpty {
@@ -37,12 +51,6 @@ struct SoundDevicesView: View {
                     .padding(16)
                     .glassEffect(.regular, in: .rect)
             }
-        }
-        // An inset like the override panel, so a long list or a short window scrolls under it
-        // the same way.
-        .safeAreaInset(edge: .top, spacing: 0) {
-            PriorityOrderHeader()
-                .glassEffect(.regular, in: .rect)
         }
         .overlay {
             if entries.isEmpty {

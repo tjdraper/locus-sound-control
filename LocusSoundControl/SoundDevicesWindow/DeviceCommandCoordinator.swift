@@ -31,10 +31,19 @@ final class DeviceCommandCoordinator {
 
     func perform(_ command: DeviceCommand) {
         switch command {
+        case let .place(ids): place(ids, atPlacedOffset: priorityOrder.order.placed.count)
         case let .changeIcon(id): choosingIconFor = id
         case let .hide(ids): hide(ids)
         case let .unhide(ids): priorityOrder.setHidden(false, for: ids)
         case let .forget(ids): forgetting = ids
+        }
+    }
+
+    /// Queue order is kept among several placed at once, since that is the order they were listed in.
+    func place(_ ids: some Collection<DeviceEntry.ID>, atPlacedOffset offset: Int) {
+        let queued = priorityOrder.order.queued.filter { ids.contains($0.id) }
+        for (index, entry) in queued.enumerated() {
+            priorityOrder.place(entry.id, atPlacedOffset: offset + index)
         }
     }
 

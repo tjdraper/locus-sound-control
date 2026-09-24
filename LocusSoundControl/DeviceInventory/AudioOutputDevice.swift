@@ -17,4 +17,11 @@ nonisolated struct AudioOutputDevice: Identifiable, Equatable, Sendable {
     let symbolName: String
 
     var id: String { uid }
+
+    /// Screen sharing publishes an output whose UID carries a session number, so it is a new
+    /// device every time and can never be recognized again. Remembering one would put a device in
+    /// the new device queue after every share.
+    var hasPerSessionIdentity: Bool {
+        uid.hasSuffix("-screen")
+    }
 }

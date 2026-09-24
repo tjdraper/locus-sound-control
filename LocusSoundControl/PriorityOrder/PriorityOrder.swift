@@ -21,32 +21,65 @@ nonisolated struct PriorityOrder: Equatable, Sendable {
         index(ofUID: uid).map { entries[$0] }
     }
 
-    /// Adds devices never seen before at the bottom, where they can only win when nothing else is
-    /// connected. Slice 6 queues them instead.
+    /// Devices never seen before go into the new device queue rather than the order, so plugging
+    /// something in cannot take the output from a device the user placed.
     mutating func record(_ connected: [AudioOutputDevice]) {
-        for device in connected {
+        for device in connected where !device.hasPerSessionIdentity {
             if let index = index(ofUID: device.uid) {
                 entries[index].refresh(from: device)
             } else {
-                entries.append(DeviceEntry(device: device))
+                entries.append(DeviceEntry(device: device, isQueued: true))
             }
         }
     }
 
-    /// Moves entries among the ones that are not hidden, which are the only ones the window lets
-    /// be dragged. Hidden entries keep their places, so unhiding one puts it back where it was.
-    mutating func moveVisible(fromOffsets source: IndexSet, toOffset destination: Int) {
-        let slots = entries.indices.filter { !entries[$0].isHidden }
-        var visible = slots.map { entries[$0] }
-        visible.move(fromOffsets: source, toOffset: destination)
-        for (slot, entry) in zip(slots, visible) {
+    var queued: [DeviceEntry] {
+        entries.filter(\.isQueued)
+    }
+
+    /// The entries the window lists as the priority order, which are the only ones it lets be
+    /// dragged.
+    var placed: [DeviceEntry] {
+        placedSlots.map { entries[$0] }
+    }
+
+    /// Moves entries among the placed ones. Hidden entries keep their places, so unhiding one puts
+    /// it back where it was.
+    mutating func movePlaced(fromOffsets source: IndexSet, toOffset destination: Int) {
+        let slots = placedSlots
+        var placed = slots.map { entries[$0] }
+        placed.move(fromOffsets: source, toOffset: destination)
+        for (slot, entry) in zip(slots, placed) {
             entries[slot] = entry
         }
     }
 
+    /// Takes a device out of the queue and puts it among the placed entries. The offset counts
+    /// only those, since they are the rows it is dropped between.
+    mutating func place(_ id: DeviceEntry.ID, atPlacedOffset offset: Int) {
+        guard let from = entries.firstIndex(where: { $0.id == id }) else { return }
+        var entry = entries.remove(at: from)
+        entry.isQueued = false
+
+        let slots = placedSlots
+        let destination = if offset < slots.count {
+            slots[max(offset, 0)]
+        } else {
+            slots.last.map { $0 + 1 } ?? 0
+        }
+        entries.insert(entry, at: destination)
+    }
+
+    private var placedSlots: [Int] {
+        entries.indices.filter { !entries[$0].isHidden && !entries[$0].isQueued }
+    }
+
+    /// Hiding a queued device sorts it too. It is a decision about the device, and one nobody
+    /// wants would otherwise keep the badge lit until dragged into a list it is never chosen from.
     mutating func setHidden(_ isHidden: Bool, for ids: Set<DeviceEntry.ID>) {
         for index in entries.indices where ids.contains(entries[index].id) {
             entries[index].isHidden = isHidden
+            if isHidden { entries[index].isQueued = false }
         }
     }
 

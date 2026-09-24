@@ -52,7 +52,8 @@ final class MenuBarPresenter: NSObject {
                 (
                     outputDevices.currentOutputUID.flatMap { priorityOrder.order.entry(forUID: $0) },
                     outputDevices.currentDevice,
-                    override.uid != nil
+                    override.uid != nil,
+                    priorityOrder.order.queued.isEmpty
                 )
             }
             for await _ in changes {
@@ -74,7 +75,8 @@ final class MenuBarPresenter: NSObject {
         statusItem.button?.image = MenuBarIcon.image(
             symbolName: entry?.symbolName ?? device?.symbolName ?? OutputDeviceSymbol.generic,
             deviceName: entry?.name ?? device?.name,
-            isOverridden: override.uid != nil
+            isOverridden: override.uid != nil,
+            isBadged: !priorityOrder.order.queued.isEmpty
         )
     }
 
@@ -135,7 +137,11 @@ extension MenuBarPresenter: NSMenuDelegate {
         }
 
         if !devices.isEmpty { menu.addItem(.separator()) }
-        menu.addItem(item(title: "Sound Devices…", action: #selector(openSoundDevices)))
+        let soundDevices = item(title: "Sound Devices…", action: #selector(openSoundDevices))
+        // Says where the menu bar's badge is dealt with.
+        let queued = order.queued.count
+        if queued > 0 { soundDevices.badge = .newItems(count: queued) }
+        menu.addItem(soundDevices)
 
         menu.addItem(.separator())
         let update = item(title: "Check for Updates…", action: #selector(checkForUpdates))

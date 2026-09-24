@@ -94,17 +94,31 @@ struct OutsideChangeAdoptionTests {
         #expect(decision == .adopt(.newDevice))
     }
 
+    @Test
+    func aQueuedDeviceIsAdoptedEachTimeItReturns() {
+        // Arrange
+        var order = order
+        order.entries.append(DeviceEntry(device: device("headset"), isQueued: true))
+
+        // Act
+        let decision = decide(current: "headset", expected: "speakers", override: "speakers", sinceSettle: .zero, order: order)
+
+        // Assert
+        #expect(decision == .adopt(.newDevice))
+    }
+
     private func decide(
         current: String,
         expected: String?,
         override: String? = nil,
-        sinceSettle: Duration?
+        sinceSettle: Duration?,
+        order: PriorityOrder? = nil
     ) -> OutsideChangeAdoption.Decision {
         OutsideChangeAdoption.decide(
             current: device(current),
             expectedUID: expected,
             overrideUID: override,
-            order: order,
+            order: order ?? self.order,
             sinceSettle: sinceSettle
         )
     }

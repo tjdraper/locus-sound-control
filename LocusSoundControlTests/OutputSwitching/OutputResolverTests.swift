@@ -32,6 +32,20 @@ struct OutputResolverTests {
     }
 
     @Test
+    func aQueuedDeviceIsPassedOver() {
+        // Arrange
+        var order = order
+        order.entries[0].isQueued = true
+        let connected = [device("airpods"), device("speakers")]
+
+        // Act
+        let resolution = OutputResolver.resolve(order: order, connected: connected, overrideUID: nil)
+
+        // Assert
+        #expect(resolution == .device(device("speakers"), reason: .priority(index: 2)))
+    }
+
+    @Test
     func anOverrideWinsOverPriority() {
         // Arrange
         let connected = [device("airpods"), device("speakers")]
