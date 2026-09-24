@@ -22,13 +22,13 @@ nonisolated enum MenuBarIcon {
             symbol.isTemplate = true
             return symbol
         }
-        return badge(tinted(symbol), description: description)
+        return badge(tinted(symbol, in: .labelColor), description: description)
     }
 
-    /// A template cannot carry the red badge, so the glyph is colored by hand in the menu bar's own
-    /// text color, which resolves each time it is drawn. Filling the template's shape keeps it
-    /// identical to the unbadged glyph, where a palette color flattens hierarchical layers.
-    private static func tinted(_ symbol: NSImage) -> NSImage {
+    /// A template cannot carry the red badge or sit on the accent plate, so the glyph is colored by
+    /// hand, in a color that resolves each time it is drawn. Filling the template's shape keeps it
+    /// identical to the plain glyph, where a palette color flattens hierarchical layers.
+    private static func tinted(_ symbol: NSImage, in color: NSColor) -> NSImage {
         // Drawn as a template, a symbol keeps faint fills in some of its layers — the inside of
         // `display`, the far bud of `airpods.pro` — which a menu bar template never shows.
         let glyph = symbol.copy() as? NSImage ?? symbol
@@ -37,7 +37,7 @@ nonisolated enum MenuBarIcon {
             guard let context = NSGraphicsContext.current?.cgContext else { return false }
             context.beginTransparencyLayer(auxiliaryInfo: nil)
             glyph.draw(in: rect)
-            NSColor.labelColor.setFill()
+            color.setFill()
             rect.fill(using: .sourceAtop)
             context.endTransparencyLayer()
             return true
@@ -57,9 +57,7 @@ nonisolated enum MenuBarIcon {
             width: symbol.size.width + plateInset.width * 2,
             height: symbol.size.height + plateInset.height * 2
         )
-        let glyph = symbol.withSymbolConfiguration(
-            NSImage.SymbolConfiguration(paletteColors: [.alternateSelectedControlTextColor])
-        ) ?? symbol
+        let glyph = tinted(symbol, in: .alternateSelectedControlTextColor)
         let image = NSImage(size: size, flipped: false) { rect in
             NSColor.controlAccentColor.setFill()
             NSBezierPath(roundedRect: rect, xRadius: 4, yRadius: 4).fill()
