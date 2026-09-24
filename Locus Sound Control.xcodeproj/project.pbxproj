@@ -45,6 +45,7 @@
 				DeviceInventory/BluetoothAudioKind.swift,
 				DeviceInventory/OutputDeviceSymbol.swift,
 				DeviceMatching/ModelMatch.swift,
+				FirstRun/FirstRunStatus.swift,
 				ICloudSync/PriorityOrderSyncMerge.swift,
 				OutputSwitching/OutputResolver.swift,
 				Override/OutsideChangeAdoption.swift,

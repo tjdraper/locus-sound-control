@@ -13,6 +13,7 @@ final class MenuBarPresenter: NSObject {
     private let updates: UpdateController
     private let showSoundDevices: () -> Void
     private let showSettings: () -> Void
+    private let showSetupChecklist: () -> Void
 
     private lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private var iconTask: Task<Void, Never>?
@@ -24,7 +25,8 @@ final class MenuBarPresenter: NSObject {
         override: OverrideStore,
         updates: UpdateController,
         showSoundDevices: @escaping () -> Void,
-        showSettings: @escaping () -> Void
+        showSettings: @escaping () -> Void,
+        showSetupChecklist: @escaping () -> Void
     ) {
         self.outputDevices = outputDevices
         self.priorityOrder = priorityOrder
@@ -32,6 +34,7 @@ final class MenuBarPresenter: NSObject {
         self.updates = updates
         self.showSoundDevices = showSoundDevices
         self.showSettings = showSettings
+        self.showSetupChecklist = showSetupChecklist
     }
 
     deinit {
@@ -102,6 +105,10 @@ final class MenuBarPresenter: NSObject {
         showSettings()
     }
 
+    @objc private func openSetupChecklist() {
+        showSetupChecklist()
+    }
+
     @objc private func checkForUpdates() {
         updates.checkForUpdates()
     }
@@ -150,6 +157,7 @@ extension MenuBarPresenter: NSMenuDelegate {
         if queued > 0 { soundDevices.badge = .newItems(count: queued) }
         menu.addItem(soundDevices)
         menu.addItem(item(title: "Settings…", action: #selector(openSettings), keyEquivalent: ","))
+        menu.addItem(item(title: "Setup Checklist…", action: #selector(openSetupChecklist)))
 
         menu.addItem(.separator())
         if let version = updates.waitingUpdateVersion {

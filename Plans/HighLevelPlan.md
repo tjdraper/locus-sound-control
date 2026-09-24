@@ -136,14 +136,15 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - A one-page setup checklist on first launch, reopenable from the menu
    - Only fresh installs see it. Earlier installs are recognized by Sparkle's launched-before flag and skip it.
    - Move to `/Applications` if needed
-   - Confirm the seeded priority order, since the seed is a guess
+   - Confirm the seeded priority order, since the seed is a guess. The checklist lists the top of the order with a way into Sound Devices to arrange it. Looking at it does not clear `PriorityOrderIsUnarrangedSeed`: on a second Mac the synced order may still be on its way, and an order that was only looked at should still be replaced by it.
    - Launch at login
    - Ask for Bluetooth access here, which is where a permission request is expected and where it costs nothing to explain first (see Decisions). Say what it buys — telling a Bluetooth speaker from headphones — and that it can be skipped.
    - Ask about automatic update checks here. Sparkle otherwise raises its own prompt on the second launch, which for a login-item menu bar app lands at a random moment. Take it over with `SPUUpdaterDelegate.updaterShouldPromptForPermissionToCheckForUpdates`.
    - Each step reflects real current state, so a change made in System Settings updates the wizard
+   - The checklist is as tall as its steps, and scrolls under a pinned Done bar when the screen is shorter. The priority order fills in after the window opens, so the window also moves up to stay clear of the Dock when it grows.
    - Slice 8 built the pieces: `LaunchAtLoginToggle`, `BluetoothAccessRow` and `UpdateSettingsSection` drop into the checklist as they are. Locus Launcher's `FirstRunStatus` and `UpdateController.defaultToAutomaticChecks()` port across for the rest.
    - When the Bluetooth prompt comes from `OutputDeviceReader`'s fallback rather than from an Allow… button, the answer is not noticed, so the icons stay as they were until the device list next changes.
-   - The Sound Devices window's one quiet line when Bluetooth access is denied (see Decisions) is not built yet. It is the same state `BluetoothAccessStore` already holds.
+   - The Sound Devices window's one quiet line when Bluetooth access is denied (see Decisions) sits at the end of the list, and only while a Bluetooth device is listed.
 
 10. **Polish and first release**
 

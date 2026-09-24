@@ -15,7 +15,7 @@ final class PriorityOrderStore {
 
     /// Still the order first launch guessed, untouched by the user. An order synced from another
     /// Mac replaces it rather than merging with it.
-    @ObservationIgnored private(set) var isUnarrangedSeed: Bool
+    private(set) var isUnarrangedSeed: Bool
 
     private static let key = "PriorityOrder"
     private static let seedKey = "PriorityOrderIsUnarrangedSeed"

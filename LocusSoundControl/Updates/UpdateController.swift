@@ -70,6 +70,13 @@ final class UpdateController {
         updaterController.startUpdater()
     }
 
+    /// Turns automatic checks on unless the user already chose, which is what Sparkle's own prompt
+    /// suggests. Once a choice is stored, Sparkle never shows that prompt.
+    func defaultToAutomaticChecks() {
+        guard UserDefaults.standard.object(forKey: "SUEnableAutomaticChecks") == nil else { return }
+        automaticallyChecksForUpdates = true
+    }
+
     /// Also brings a waiting update's window forward. Sparkle doesn't announce that, so the app
     /// comes to the front first.
     func checkForUpdates() {
@@ -90,6 +97,13 @@ private final class UpdaterDelegate: NSObject, SPUUpdaterDelegate {
     /// Everyone else sees the default channel alone.
     nonisolated func allowedChannels(for _: SPUUpdater) -> Set<String> {
         UpdateChannelPreference().allowedChannels
+    }
+
+    /// Sparkle asks on the second launch, which for an app that opens at login is an arbitrary
+    /// moment, so the setup checklist asks instead. Installs from before the checklist never see
+    /// it, so Sparkle still asks them.
+    nonisolated func updaterShouldPromptForPermissionToCheck(forUpdates _: SPUUpdater) -> Bool {
+        FirstRunStatus().state == .existingInstall
     }
 
     nonisolated func updater(

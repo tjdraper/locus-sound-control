@@ -5,6 +5,7 @@ struct SoundDevicesView: View {
     let priorityOrder: PriorityOrderStore
     let override: OverrideStore
     let commands: DeviceCommandCoordinator
+    let bluetoothAccess: BluetoothAccessStore
 
     var body: some View {
         @Bindable var commands = commands
@@ -38,6 +39,10 @@ struct SoundDevicesView: View {
                     HiddenDevicesHeader()
                 }
             }
+
+            if bluetoothAccess.wasRefused, entries.contains(where: { $0.transport == .bluetooth }) {
+                BluetoothAccessDeniedNote(store: bluetoothAccess)
+            }
         }
         // A list row has no double-click action of its own. On macOS, this primary action is what
         // a double-click on a row runs.
@@ -70,6 +75,13 @@ struct SoundDevicesView: View {
             Text(forgetMessage)
         }
         .frame(minWidth: 520, idealWidth: 620, maxWidth: 760, minHeight: 360, idealHeight: 480)
+        .task {
+            // Access can be changed in System Settings while this window is open or closed.
+            bluetoothAccess.refresh()
+            for await _ in NotificationCenter.default.notifications(named: NSApplication.didBecomeActiveNotification) {
+                bluetoothAccess.refresh()
+            }
+        }
     }
 
     private var entries: [DeviceEntry] {

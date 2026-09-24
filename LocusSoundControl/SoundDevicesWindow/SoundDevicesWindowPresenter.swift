@@ -7,6 +7,7 @@ final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
     private let outputDevices: OutputDeviceInventory
     private let priorityOrder: PriorityOrderStore
     private let override: OverrideStore
+    private let bluetoothAccess: BluetoothAccessStore
     private let dockIcon: DockIconPresence
     private let commands: DeviceCommandCoordinator
     private lazy var window = makeWindow()
@@ -21,11 +22,13 @@ final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
         outputDevices: OutputDeviceInventory,
         priorityOrder: PriorityOrderStore,
         override: OverrideStore,
+        bluetoothAccess: BluetoothAccessStore,
         dockIcon: DockIconPresence
     ) {
         self.outputDevices = outputDevices
         self.priorityOrder = priorityOrder
         self.override = override
+        self.bluetoothAccess = bluetoothAccess
         self.dockIcon = dockIcon
         commands = DeviceCommandCoordinator(outputDevices: outputDevices, priorityOrder: priorityOrder, override: override)
     }
@@ -46,7 +49,8 @@ final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
                 outputDevices: outputDevices,
                 priorityOrder: priorityOrder,
                 override: override,
-                commands: commands
+                commands: commands,
+                bluetoothAccess: bluetoothAccess
             )
         ))
         window.title = "Sound Devices"

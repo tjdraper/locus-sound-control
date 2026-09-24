@@ -24,6 +24,11 @@ final class BluetoothAccessStore: NSObject {
         authorization == .allowedAlways
     }
 
+    /// Denied by the user, or not theirs to allow. Either way macOS will not ask again.
+    var wasRefused: Bool {
+        authorization == .denied || authorization == .restricted
+    }
+
     func refresh() {
         let wasGranted = isGranted
         authorization = CBManager.authorization

@@ -28,7 +28,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         outputDevices: outputDevices,
         priorityOrder: priorityOrder,
         override: override,
+        bluetoothAccess: bluetoothAccess,
         dockIcon: dockIcon
+    )
+    private lazy var firstRunWindow = FirstRunWindowPresenter(
+        updates: updates,
+        launchAtLogin: launchAtLogin,
+        bluetoothAccess: bluetoothAccess,
+        priorityOrder: priorityOrder,
+        dockIcon: dockIcon,
+        showSoundDevices: { [soundDevicesWindow] in soundDevicesWindow.show() }
     )
     private lazy var menuBar = MenuBarPresenter(
         outputDevices: outputDevices,
@@ -36,13 +45,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         override: override,
         updates: updates,
         showSoundDevices: { [soundDevicesWindow] in soundDevicesWindow.show() },
-        showSettings: { [settingsWindow] in settingsWindow.show() }
+        showSettings: { [settingsWindow] in settingsWindow.show() },
+        showSetupChecklist: { [firstRunWindow] in firstRunWindow.show() }
     )
 
     func applicationDidFinishLaunching(_: Notification) {
         MainMenu.install(appName: "Locus Sound Control", fileMenu: soundDevicesWindow.fileMenu)
+        // Settled before Sparkle starts, which marks every install as launched before.
+        let isFirstRun = FirstRunStatus().settleAtLaunch() == .pending
         // Before the updater starts, since accepting the move relaunches from the new location.
-        ApplicationsFolderMoveWorkflow().offerIfNeeded()
+        // On a first run the setup checklist makes the offer instead.
+        if !isFirstRun {
+            ApplicationsFolderMoveWorkflow().offerIfNeeded()
+        }
         // Answered before Sparkle's first check, which would otherwise still look for betas.
         BetaTrackExitWorkflow().offerIfNeeded()
         updates.start()
@@ -50,6 +65,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         outputSwitching.start()
         iCloudSync.start()
         menuBar.start()
+        if isFirstRun {
+            firstRunWindow.show()
+        }
     }
 
     /// Clicking the Dock icon, or opening the app again from Finder while it runs, is a request
