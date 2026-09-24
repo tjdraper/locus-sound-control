@@ -50,7 +50,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
 
     func applicationDidFinishLaunching(_: Notification) {
-        MainMenu.install(appName: "Locus Sound Control", fileMenu: soundDevicesWindow.fileMenu)
+        MainMenu.install(
+            appName: "Locus Sound Control",
+            fileMenu: soundDevicesWindow.fileMenu,
+            viewItems: [soundDevicesWindow.debugInfo.makeMenuItem()]
+        )
         // Settled before Sparkle starts, which marks every install as launched before.
         let isFirstRun = FirstRunStatus().settleAtLaunch() == .pending
         // Before the updater starts, since accepting the move relaunches from the new location.

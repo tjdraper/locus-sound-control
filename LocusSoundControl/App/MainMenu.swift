@@ -5,7 +5,12 @@ import AppKit
 /// copy or close. SwiftUI's `App` built this; the menu bar item is AppKit, so this is built here.
 enum MainMenu {
     /// - Parameter fileMenu: fills the File menu each time it opens. Not retained.
-    static func install(appName: String, fileMenu: NSMenuDelegate) {
+    static func install(appName: String, fileMenu: NSMenuDelegate, viewItems: [NSMenuItem]) {
+        // AppKit adds tab and full screen items to the View and Window menus on its own. This
+        // app's windows are single utility windows, where neither means anything.
+        NSWindow.allowsAutomaticWindowTabbing = false
+        UserDefaults.standard.register(defaults: ["NSFullScreenMenuItemEverywhere": false])
+
         let main = NSMenu()
         main.addItem(submenu(named: appName, items: [
             NSMenuItem(
@@ -35,6 +40,8 @@ enum MainMenu {
             NSMenuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v"),
             NSMenuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"),
         ]))
+
+        main.addItem(submenu(named: "View", items: viewItems))
 
         let windowMenu = submenu(named: "Window", items: [
             NSMenuItem(title: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m"),

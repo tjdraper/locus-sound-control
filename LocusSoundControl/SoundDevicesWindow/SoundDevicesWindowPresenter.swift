@@ -12,6 +12,9 @@ final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
     private let commands: DeviceCommandCoordinator
     private lazy var window = makeWindow()
 
+    /// The target of the View menu's item, which does not retain it.
+    let debugInfo = DebugInfoToggle()
+
     /// The File menu's delegate, which the main menu does not retain.
     private(set) lazy var fileMenu = SoundDevicesFileMenu(commands: commands) { [weak self] in
         // Asked through the delegate, since reading `window` would build it.

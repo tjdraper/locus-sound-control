@@ -14,6 +14,8 @@ struct OutputDeviceRow: View {
     let commands: [DeviceCommand]
     let perform: (DeviceCommand) -> Void
 
+    @AppStorage(DebugInfoToggle.defaultsKey) private var showsDebugInfo = false
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
@@ -26,24 +28,27 @@ struct OutputDeviceRow: View {
                     Text(entry.name)
                         .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
 
+                    // Not selectable: selecting text starts on the same drag that reorders the row.
+                    Text(connectionLine)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
                     // The identifiers devices are matched on, shown because they are the whole
                     // reason matching is hard and this is where they can be read against a real
                     // setup. Every UID an entry covers is listed, so a merge the app made on its
                     // own is visible rather than guessed at.
-                    // Not selectable: selecting text starts on the same drag that reorders the row.
-                    Text([entry.transport.displayName, uids.first].compactMap(\.self).joined(separator: " · "))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    ForEach(uids.dropFirst(), id: \.self) { uid in
-                        Text(uid)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    if showsDebugInfo {
+                        ForEach(uids.dropFirst(), id: \.self) { uid in
+                            Text(uid)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
 
-                    if let modelUID = entry.modelUID {
-                        Text(modelUID)
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
+                        if let modelUID = entry.modelUID {
+                            Text(modelUID)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
                 }
             }
@@ -90,6 +95,11 @@ struct OutputDeviceRow: View {
     /// A selected row is highlighted in the accent color, so a tinted icon would disappear into it.
     private var iconStyle: AnyShapeStyle {
         isCurrentOutput && !isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary)
+    }
+
+    /// How the device is connected, and with debug info on, the first of its UIDs.
+    private var connectionLine: String {
+        ([entry.transport.displayName] + (showsDebugInfo ? uids.prefix(1) : [])).joined(separator: " · ")
     }
 
     /// The connected one first.
