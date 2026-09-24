@@ -4,19 +4,27 @@ import AppKit
 enum OutputDeviceMenuBuilder {
     private static let iconPointSize: CGFloat = 14
 
+    /// What a row offers, carried as its represented object.
+    struct Choice {
+        let device: AudioOutputDevice
+
+        /// The icon the user assigned if there is one, which the device itself does not know about.
+        let symbolName: String
+    }
+
     static func rows(
-        for devices: [AudioOutputDevice],
+        for choices: [Choice],
         currentOutputUID: String?,
         target: AnyObject,
         action: Selector
     ) -> [NSMenuItem] {
-        devices.map { device in
-            let isCurrentOutput = device.uid == currentOutputUID
-            let row = NSMenuItem(title: device.name, action: action, keyEquivalent: "")
+        choices.map { choice in
+            let isCurrentOutput = choice.device.uid == currentOutputUID
+            let row = NSMenuItem(title: choice.device.name, action: action, keyEquivalent: "")
             row.target = target
             row.isEnabled = true
-            row.representedObject = device
-            row.image = icon(device.symbolName, tint: isCurrentOutput ? .accent : nil)
+            row.representedObject = choice
+            row.image = icon(choice.symbolName, tint: isCurrentOutput ? .accent : nil)
             // macOS 27 hides menu item images by default; an item has to ask for its own.
             if #available(macOS 27.0, *) { row.preferredImageVisibility = .visible }
             row.state = isCurrentOutput ? .on : .off
@@ -29,8 +37,8 @@ enum OutputDeviceMenuBuilder {
     /// the menu recolors for the highlight by itself.
     static func applyHighlight(_ highlighted: NSMenuItem?, in menu: NSMenu) {
         for row in menu.items where row.state == .on {
-            guard let device = row.representedObject as? AudioOutputDevice else { continue }
-            row.image = icon(device.symbolName, tint: row === highlighted ? .highlighted : .accent)
+            guard let choice = row.representedObject as? Choice else { continue }
+            row.image = icon(choice.symbolName, tint: row === highlighted ? .highlighted : .accent)
         }
     }
 

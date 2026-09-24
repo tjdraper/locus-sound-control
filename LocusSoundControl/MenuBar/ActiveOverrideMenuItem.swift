@@ -4,8 +4,8 @@ import SwiftUI
 /// The banner at the top of the menu while an override is active. An override stops the priority
 /// order from doing its job, so it is drawn to be noticed rather than as one more row.
 enum ActiveOverrideMenuItem {
-    static func make(device: AudioOutputDevice, cancel: @escaping () -> Void) -> NSMenuItem {
-        let view = NSHostingView(rootView: ActiveOverrideBanner(device: device, cancel: cancel))
+    static func make(name: String, symbolName: String, cancel: @escaping () -> Void) -> NSMenuItem {
+        let view = NSHostingView(rootView: ActiveOverrideBanner(name: name, symbolName: symbolName, cancel: cancel))
         view.frame.size = view.fittingSize
         // The menu widens a view to its own width only when the view says it can stretch.
         view.autoresizingMask = [.width]
@@ -17,14 +17,15 @@ enum ActiveOverrideMenuItem {
 }
 
 private struct ActiveOverrideBanner: View {
-    let device: AudioOutputDevice
+    let name: String
+    let symbolName: String
     let cancel: () -> Void
 
     private let panel = RoundedRectangle(cornerRadius: 8, style: .continuous)
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: device.symbolName)
+            Image(systemName: DrawableSymbol.name(symbolName))
                 .font(.body.weight(.semibold))
                 .foregroundStyle(Color(nsColor: .alternateSelectedControlTextColor))
                 .frame(width: 30, height: 30)
@@ -33,7 +34,7 @@ private struct ActiveOverrideBanner: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text("Override Active")
                     .font(.headline)
-                Text(device.name)
+                Text(name)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

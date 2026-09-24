@@ -38,6 +38,7 @@
 		324EA489305F81D100DDFE7D /* Exceptions for "LocusSoundControl" folder in "Locus Sound Control Tests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				DeviceIcon/AssignableSymbols.swift,
 				DeviceInventory/AppleAccessorySymbol.swift,
 				DeviceInventory/AudioDeviceTransport.swift,
 				DeviceInventory/AudioOutputDevice.swift,
@@ -47,6 +48,7 @@
 				Override/OutsideChangeAdoption.swift,
 				PriorityOrder/DeviceEntry.swift,
 				PriorityOrder/PriorityOrder.swift,
+				SoundDevicesWindow/DeviceCommand.swift,
 				Updates/UpdateChannelPreference.swift,
 			);
 			target = 324EA44A305F81D100DDFE7D /* Locus Sound Control Tests */;

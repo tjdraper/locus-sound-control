@@ -118,6 +118,93 @@ struct PriorityOrderTests {
         #expect(decoded == [entry])
     }
 
+    @Test
+    func movingAroundAHiddenEntryLeavesItInPlace() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["a", "hidden", "b", "c"].map { device($0) }, currentOutputUID: nil)
+        order.setHidden(true, for: [order.entries[1].id])
+
+        // Act
+        order.moveVisible(fromOffsets: [2], toOffset: 0)
+
+        // Assert
+        #expect(order.entries.map(\.uids) == [["c"], ["hidden"], ["a"], ["b"]])
+    }
+
+    @Test
+    func anUnhiddenEntryIsBackWhereItWas() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["a", "b", "c"].map { device($0) }, currentOutputUID: nil)
+        let id = order.entries[1].id
+        order.setHidden(true, for: [id])
+
+        // Act
+        order.setHidden(false, for: [id])
+
+        // Assert
+        #expect(order.entries.map(\.uids) == [["a"], ["b"], ["c"]])
+        #expect(order.entries.allSatisfy { !$0.isHidden })
+    }
+
+    @Test
+    func aForgottenDeviceIsNewAgainWhenItReturns() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["a", "b"].map { device($0) }, currentOutputUID: nil)
+        let forgotten = order.entries[0].id
+        order.assignSymbol("pianokeys", to: forgotten)
+
+        // Act
+        order.forget([forgotten])
+        order.record([device("a")])
+
+        // Assert
+        #expect(order.entries.map(\.uids) == [["b"], ["a"]])
+        #expect(order.entries[1].id != forgotten)
+        #expect(order.entries[1].assignedSymbolName == nil)
+    }
+
+    @Test
+    func choosingAutomaticDropsTheAssignedSymbol() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: [device("a")], currentOutputUID: nil)
+        let id = order.entries[0].id
+        order.assignSymbol("pianokeys", to: id)
+
+        // Act
+        order.assignSymbol(nil, to: id)
+
+        // Assert
+        #expect(order.entries[0].symbolName == "hifispeaker")
+    }
+
+    @Test
+    func theMenuLeavesOutHiddenDevices() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["a", "hidden", "b"].map { device($0) }, currentOutputUID: nil)
+        order.setHidden(true, for: [order.entries[1].id])
+        let connected = ["b", "hidden", "a"].map { device($0) }
+
+        // Act
+        let offered = order.offeredInMenu(connected, currentOutputUID: "a")
+
+        // Assert
+        #expect(offered.map(\.uid) == ["a", "b"])
+    }
+
+    @Test
+    func theMenuKeepsAHiddenDeviceThatIsPlaying() {
+        // Arrange
+        var order = PriorityOrder.seeded(from: ["a", "hidden"].map { device($0) }, currentOutputUID: nil)
+        order.setHidden(true, for: [order.entries[1].id])
+        let connected = ["a", "hidden"].map { device($0) }
+
+        // Act
+        let offered = order.offeredInMenu(connected, currentOutputUID: "hidden")
+
+        // Assert
+        #expect(offered.map(\.uid) == ["a", "hidden"])
+    }
+
     private func device(_ uid: String, name: String? = nil) -> AudioOutputDevice {
         AudioOutputDevice(uid: uid, name: name ?? uid, modelUID: nil, transport: .usb, symbolName: "hifispeaker")
     }

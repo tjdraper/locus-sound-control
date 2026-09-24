@@ -8,7 +8,14 @@ final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
     private let priorityOrder: PriorityOrderStore
     private let override: OverrideStore
     private let dockIcon: DockIconPresence
+    private let commands: DeviceCommandCoordinator
     private lazy var window = makeWindow()
+
+    /// The File menu's delegate, which the main menu does not retain.
+    private(set) lazy var fileMenu = SoundDevicesFileMenu(commands: commands) { [weak self] in
+        // Asked through the delegate, since reading `window` would build it.
+        NSApp.keyWindow?.delegate === self
+    }
 
     init(
         outputDevices: OutputDeviceInventory,
@@ -20,6 +27,7 @@ final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
         self.priorityOrder = priorityOrder
         self.override = override
         self.dockIcon = dockIcon
+        commands = DeviceCommandCoordinator(outputDevices: outputDevices, priorityOrder: priorityOrder, override: override)
     }
 
     func show() {
@@ -34,7 +42,12 @@ final class SoundDevicesWindowPresenter: NSObject, NSWindowDelegate {
 
     private func makeWindow() -> NSWindow {
         let window = NSWindow(contentViewController: NSHostingController(
-            rootView: SoundDevicesView(outputDevices: outputDevices, priorityOrder: priorityOrder, override: override)
+            rootView: SoundDevicesView(
+                outputDevices: outputDevices,
+                priorityOrder: priorityOrder,
+                override: override,
+                commands: commands
+            )
         ))
         window.title = "Sound Devices"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]

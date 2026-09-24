@@ -79,7 +79,7 @@ final class MenuBarPresenter: NSObject {
     }
 
     @objc private func overrideWithDevice(_ sender: NSMenuItem) {
-        guard let device = sender.representedObject as? AudioOutputDevice else { return }
+        guard let device = (sender.representedObject as? OutputDeviceMenuBuilder.Choice)?.device else { return }
         // Choosing the overridden device again is the way to cancel from the keyboard, which cannot
         // reach the banner's button.
         if device.uid == override.uid {
@@ -108,8 +108,14 @@ extension MenuBarPresenter: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
+        let order = priorityOrder.order
+        let symbolName = { (device: AudioOutputDevice) in order.entry(forUID: device.uid)?.symbolName ?? device.symbolName }
+
         if let overridden = outputDevices.devices.first(where: { $0.uid == override.uid }) {
-            menu.addItem(ActiveOverrideMenuItem.make(device: overridden) { [weak self, weak menu] in
+            menu.addItem(ActiveOverrideMenuItem.make(
+                name: overridden.name,
+                symbolName: symbolName(overridden)
+            ) { [weak self, weak menu] in
                 // A button inside a menu does not close it the way choosing an item does.
                 menu?.cancelTracking()
                 self?.override.cancel()
@@ -117,8 +123,9 @@ extension MenuBarPresenter: NSMenuDelegate {
             menu.addItem(.separator())
         }
 
+        let offered = order.offeredInMenu(outputDevices.devices, currentOutputUID: outputDevices.currentOutputUID)
         let devices = OutputDeviceMenuBuilder.rows(
-            for: priorityOrder.order.inPriorityOrder(outputDevices.devices),
+            for: offered.map { OutputDeviceMenuBuilder.Choice(device: $0, symbolName: symbolName($0)) },
             currentOutputUID: outputDevices.currentOutputUID,
             target: self,
             action: #selector(overrideWithDevice)

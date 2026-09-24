@@ -5,7 +5,7 @@ nonisolated enum OutputResolver {
     enum Resolution: Equatable {
         case device(AudioOutputDevice, reason: Reason)
 
-        /// Nothing in the order is connected. Forcing some other device would be a guess, and
+        /// Nothing in the order is connected, or only hidden devices are. Forcing some other device would be a guess, and
         /// macOS has already made one.
         case leaveAlone
     }

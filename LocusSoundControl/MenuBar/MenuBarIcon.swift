@@ -3,7 +3,7 @@ import AppKit
 /// The image in the menu bar, showing the kind of device the Mac is playing through. Slice 6
 /// draws the new-device badge into it.
 nonisolated enum MenuBarIcon {
-    /// A symbol name the user assigned in slice 5 stops resolving if Apple renames or drops that
+    /// A symbol name the user assigned stops resolving if Apple renames or drops that
     /// symbol, and an empty menu bar would leave no way to reach the app at all.
     static func image(symbolName: String, deviceName: String?, isOverridden: Bool) -> NSImage? {
         var description = deviceName.map { "Sound output: \($0)" } ?? "Sound output"

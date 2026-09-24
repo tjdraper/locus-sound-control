@@ -111,7 +111,12 @@ final class OutputSwitchingCoordinator {
         let connectedCount = outputDevices.devices.count
         guard case let .device(device, reason) = resolution else {
             expectedUID = outputDevices.currentOutputUID
-            Self.log.info("None of the \(order.entries.count) devices in the priority order is connected, so the output is left alone")
+            Self.log.info(
+                """
+                None of the \(order.entries.count) devices in the priority order is both connected and not hidden, \
+                so the output is left alone
+                """
+            )
             return
         }
 

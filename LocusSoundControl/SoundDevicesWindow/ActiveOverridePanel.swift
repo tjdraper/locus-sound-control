@@ -10,7 +10,7 @@ struct ActiveOverridePanel: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: entry.symbolName)
+            Image(systemName: DrawableSymbol.name(entry.symbolName))
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(Color(nsColor: .alternateSelectedControlTextColor))
                 .frame(width: 36, height: 36)

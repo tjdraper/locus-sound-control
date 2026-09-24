@@ -53,8 +53,25 @@ final class PriorityOrderStore {
         save()
     }
 
-    func move(fromOffsets source: IndexSet, toOffset destination: Int) {
-        order.entries.move(fromOffsets: source, toOffset: destination)
+    func moveVisible(fromOffsets source: IndexSet, toOffset destination: Int) {
+        order.moveVisible(fromOffsets: source, toOffset: destination)
+        save()
+    }
+
+    func setHidden(_ isHidden: Bool, for ids: Set<DeviceEntry.ID>) {
+        order.setHidden(isHidden, for: ids)
+        Self.log.info("\(isHidden ? "Hid" : "Unhid", privacy: .public) \(ids.count) devices")
+        save()
+    }
+
+    func assignSymbol(_ symbolName: String?, to id: DeviceEntry.ID) {
+        order.assignSymbol(symbolName, to: id)
+        save()
+    }
+
+    func forget(_ ids: Set<DeviceEntry.ID>) {
+        order.forget(ids)
+        Self.log.info("Forgot \(ids.count) devices")
         save()
     }
 

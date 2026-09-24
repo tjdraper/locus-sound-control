@@ -4,26 +4,30 @@ struct SoundDevicesView: View {
     let outputDevices: OutputDeviceInventory
     let priorityOrder: PriorityOrderStore
     let override: OverrideStore
-
-    @State private var selection: Set<DeviceEntry.ID> = []
+    let commands: DeviceCommandCoordinator
 
     var body: some View {
-        List(selection: $selection) {
-            ForEach(priorityOrder.order.entries) { entry in
-                let device = connectedDevice(for: entry)
-                OutputDeviceRow(
-                    entry: entry,
-                    device: device,
-                    isCurrentOutput: device != nil && device?.uid == outputDevices.currentOutputUID,
-                    isOverride: device != nil && device?.uid == override.uid,
-                    isSelected: selection.contains(entry.id)
-                )
+        @Bindable var commands = commands
+        List(selection: $commands.selection) {
+            ForEach(entries.filter { !$0.isHidden }) { entry in
+                row(for: entry)
             }
-            .onMove { priorityOrder.move(fromOffsets: $0, toOffset: $1) }
+            .onMove { priorityOrder.moveVisible(fromOffsets: $0, toOffset: $1) }
+
+            let hidden = entries.filter(\.isHidden)
+            if !hidden.isEmpty {
+                Section {
+                    ForEach(hidden) { entry in
+                        row(for: entry)
+                    }
+                } header: {
+                    HiddenDevicesHeader()
+                }
+            }
         }
         // A list row has no double-click action of its own. On macOS, this primary action is what
         // a double-click on a row runs.
-        .contextMenu(forSelectionType: DeviceEntry.ID.self, menu: { _ in EmptyView() }, primaryAction: overrideWithDevice)
+        .contextMenu(forSelectionType: DeviceEntry.ID.self, menu: contextMenu, primaryAction: commands.toggleOverride)
         // At the bottom rather than the top, so setting an override does not push the list down
         // under the pointer that just double-clicked it. As an inset rather than a sibling, the
         // last row can still scroll clear of it.
@@ -41,7 +45,7 @@ struct SoundDevicesView: View {
                 .glassEffect(.regular, in: .rect)
         }
         .overlay {
-            if priorityOrder.order.entries.isEmpty {
+            if entries.isEmpty {
                 ContentUnavailableView(
                     "No Output Devices",
                     systemImage: "speaker.slash",
@@ -49,27 +53,66 @@ struct SoundDevicesView: View {
                 )
             }
         }
+        .confirmationDialog(
+            forgetTitle,
+            isPresented: Binding(get: { !commands.forgetting.isEmpty }, set: { if !$0 { commands.forgetting = [] } })
+        ) {
+            Button("Forget", role: .destructive, action: commands.confirmForget)
+        } message: {
+            Text(forgetMessage)
+        }
         .frame(minWidth: 520, idealWidth: 620, maxWidth: 760, minHeight: 360, idealHeight: 480)
+    }
+
+    private var entries: [DeviceEntry] {
+        priorityOrder.order.entries
+    }
+
+    private func row(for entry: DeviceEntry) -> some View {
+        let device = commands.connectedDevice(for: entry)
+        return OutputDeviceRow(
+            entry: entry,
+            device: device,
+            isCurrentOutput: device != nil && device?.uid == outputDevices.currentOutputUID,
+            isOverride: device != nil && device?.uid == override.uid,
+            isSelected: commands.selection.contains(entry.id),
+            commands: commands.groups(for: [entry.id]).flatMap(\.self),
+            perform: commands.perform
+        )
+        .popover(
+            isPresented: Binding(
+                get: { commands.choosingIconFor == entry.id },
+                set: { if !$0 { commands.choosingIconFor = nil } }
+            ),
+            arrowEdge: .trailing
+        ) {
+            DeviceIconPicker(entry: entry) { commands.chooseIcon($0, for: entry.id) }
+        }
+    }
+
+    private func contextMenu(_ ids: Set<DeviceEntry.ID>) -> some View {
+        ForEach(Array(commands.groups(for: ids).enumerated()), id: \.offset) { index, group in
+            if index > 0 { Divider() }
+            ForEach(group, id: \.self) { command in
+                Button(command.title) { commands.perform(command) }
+            }
+        }
+    }
+
+    private var forgetTitle: String {
+        let forgetting = entries.filter { commands.forgetting.contains($0.id) }
+        guard forgetting.count == 1, let entry = forgetting.first else { return "Forget \(forgetting.count) Sound Devices?" }
+        return "Forget “\(entry.name)”?"
+    }
+
+    private var forgetMessage: String {
+        guard commands.forgetting.count == 1 else {
+            return "Their places in the priority order and their icons are removed. Any that connect again arrive as new devices."
+        }
+        return "Its place in the priority order and its icon are removed. If it connects again, it arrives as a new device."
     }
 
     private var overridden: DeviceEntry? {
         override.uid.flatMap { priorityOrder.order.entry(forUID: $0) }
-    }
-
-    private func connectedDevice(for entry: DeviceEntry) -> AudioOutputDevice? {
-        outputDevices.devices.first { entry.uids.contains($0.uid) }
-    }
-
-    private func overrideWithDevice(_ ids: Set<DeviceEntry.ID>) {
-        guard ids.count == 1,
-              let entry = priorityOrder.order.entries.first(where: { ids.contains($0.id) }),
-              let device = connectedDevice(for: entry)
-        else { return }
-        // The same toggle as choosing it again in the menu.
-        if device.uid == override.uid {
-            override.cancel()
-        } else {
-            override.set(device.uid)
-        }
     }
 }

@@ -10,10 +10,14 @@ struct OutputDeviceRow: View {
     let isOverride: Bool
     let isSelected: Bool
 
+    /// What the row's own buttons offer. Always for this device alone, whatever else is selected.
+    let commands: [DeviceCommand]
+    let perform: (DeviceCommand) -> Void
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Image(systemName: entry.symbolName)
+                Image(systemName: DrawableSymbol.name(entry.symbolName))
                     .font(.title3)
                     .frame(width: 28, alignment: .center)
                     .foregroundStyle(iconStyle)
@@ -40,17 +44,39 @@ struct OutputDeviceRow: View {
 
             Spacer(minLength: 12)
 
-            HStack(spacing: 6) {
-                if let status {
-                    Text(status)
+            VStack(alignment: .trailing, spacing: 6) {
+                HStack(spacing: 6) {
+                    // A space rather than nothing, so this line still sets where the row's first
+                    // baseline is and the buttons below stay at the bottom.
+                    Text(status ?? " ")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .accessibilityHidden(status == nil)
+                    if isOverride {
+                        overrideTag
+                    }
                 }
-                if isOverride {
-                    overrideTag
+
+                Spacer(minLength: 0)
+
+                HStack(spacing: 2) {
+                    ForEach(commands, id: \.self) { command in
+                        Button { perform(command) } label: {
+                            Label(command.title, systemImage: command.symbolName)
+                                .labelStyle(.iconOnly)
+                                .frame(width: 20, height: 18)
+                        }
+                        .help(command.title)
+                    }
                 }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
             }
+            .frame(maxHeight: .infinity)
         }
+        // Lets the trailing column grow to the row's full height, which is what puts the buttons
+        // at the bottom.
+        .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, 4)
     }
 

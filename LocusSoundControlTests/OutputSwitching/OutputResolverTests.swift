@@ -44,6 +44,20 @@ struct OutputResolverTests {
     }
 
     @Test
+    func anOverrideWinsEvenOnAHiddenDevice() {
+        // Arrange
+        var order = order
+        order.entries[2].isHidden = true
+        let connected = [device("airpods"), device("speakers")]
+
+        // Act
+        let resolution = OutputResolver.resolve(order: order, connected: connected, overrideUID: "speakers")
+
+        // Assert
+        #expect(resolution == .device(device("speakers"), reason: .override))
+    }
+
+    @Test
     func anOverrideOnADeviceThatIsGoneIsIgnored() {
         // Arrange
         let connected = [device("display"), device("speakers")]

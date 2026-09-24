@@ -84,6 +84,11 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
    - Screen sharing and AirPlay taps get a new UID per session (see Decisions). They never enter the queue and never badge, or the icon would light up after every screen share.
    - The Sound Devices window can **merge** two entries into one — these are the same device — and **split** a merged entry back apart. Both directions are needed: the automatic match cannot tell two units of the same model apart (see Decisions), and a device with no model identifier has nothing else to fall back on. A merged entry shows which identities it covers, so what the app decided is visible rather than guessed at.
    - **This slice needs the model-level match from slice 7, on a single Mac, with no sync involved.** A USB audio UID ends in either a serial number or a USB location ID, and a location ID changes with the port. CoreAudio's own records show the CalDigit dock on this Mac under eight location IDs, one per Thunderbolt port it has ever been in. Keyed on UID alone the dock would badge as a new device every time it moved sides, and would carry a separate priority entry for each port. Build the match here and let slice 7 reuse it, rather than the other way round.
+   - Merge and Split go in `DeviceCommand`, which is where the File menu, the list's context menu and the row buttons all get their commands and titles. Merge needs two or more entries, so it shows in the menus but never as a row button, since those act only on their own row. Split acts on one entry that holds more than one UID, so it can be a row button.
+   - A merge of a hidden entry with a visible one has to decide whether the result is hidden. The assigned icon is already settled: last writer wins (see Decisions).
+   - Hidden entries keep their slots in the stored order, and dragging moves visible entries around them (`PriorityOrder.moveVisible`). Dropping a device from the queue into the list gives an offset among the visible rows, so it needs the same translation to a position in the full order.
+   - Decide whether hiding a queued device also sorts it. It probably should: hiding is a decision about the device, and a virtual device nobody wants would otherwise keep the badge lit until it is dragged into a list it will never be chosen from.
+   - A forgotten device that reconnects lands in the queue and badges. That is what "arrives as a new device" means once the queue exists, and the confirmation dialog says so.
 
 7. **iCloud sync**
 
@@ -253,6 +258,12 @@ A menu bar app that keeps the Mac's sound output on the device you actually want
 - **A device that is not connected is dimmed in place, not moved.** The priority list is one order, so lifting absent devices into their own area would show an order different from the one stored, and leaving them out of the window altogether would hide the thing "Forget" acts on. They stay where they are, with the row and its icon dimmed. Hidden devices and the new device queue get areas of their own because they are genuinely separate lists; a disconnected device is an ordinary member of the priority list that happens not to be here right now.
 
   The right-hand label says the state in words — "Current Output" for the one playing, nothing for a device that is connected, "Not Connected" for the rest — so the difference never rests on dimming alone.
+
+- **Hiding the overridden device cancels its override.** Hiding says "not this one", and an override left in place would keep the sound on the device just hidden, with nothing in the menu to show why. Choosing a hidden device afterwards still sets an override: double-clicking it in the window, or picking it in Control Center, which is adopted like any other outside change. The resolver lets an override win on a hidden device for that reason.
+
+- **A hidden device keeps its place in the order.** Hidden devices are listed in their own area, but their entries stay where they were in the stored order, and dragging the visible ones moves them around those slots. Unhiding puts a device back where it was rather than at the bottom, so hiding by mistake costs nothing.
+
+- **The menu keeps a hidden device while it is playing.** Hidden devices drop out of the menu, except the current output. With every connected device hidden the app leaves the output alone, and macOS may land on a hidden one; a menu with no checked row would stop saying where the sound is going.
 
 - **Every window centers on the primary display the first time and is where you left it after that.** This binds any window the app ever grows, not just the two it has now. A window that reopens where it was is the difference between a tool and something that has to be dragged back into place each time, and the cost is a line at the point the window is built — locus-launcher's `RememberedWindowPlacement(autosaveName:)`, ported with one fix.
 

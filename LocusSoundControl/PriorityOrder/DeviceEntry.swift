@@ -15,7 +15,7 @@ nonisolated struct DeviceEntry: Identifiable, Codable, Equatable, Sendable {
     /// Kept so a device that is not connected can still show the symbol it had when it was.
     var automaticSymbolName: String
 
-    /// Chosen by the user in slice 5, and wins over the guessed one.
+    /// Chosen by the user, and wins over the guessed one.
     var assignedSymbolName: String?
 
     var isHidden: Bool

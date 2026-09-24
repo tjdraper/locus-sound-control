@@ -3,7 +3,7 @@ import Foundation
 /// Picks the symbol for a device, from the most specific thing known about it down to the
 /// coarsest: the exact model, then what kind of Bluetooth device it is, then how it is attached.
 ///
-/// Everything here is a guess the user can overrule in slice 5. Where nothing identifies the
+/// Everything here is a guess the user can overrule from the Sound Devices window. Where nothing identifies the
 /// shape of the device, a plain speaker beats a wrong guess.
 nonisolated enum OutputDeviceSymbol {
     static let generic = "hifispeaker"

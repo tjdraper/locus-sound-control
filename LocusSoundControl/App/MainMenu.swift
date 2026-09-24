@@ -4,7 +4,8 @@ import AppKit
 /// AppKit still routes ⌘C, ⌘W and the rest through the main menu, so a window without one cannot
 /// copy or close. SwiftUI's `App` built this; the menu bar item is AppKit, so this is built here.
 enum MainMenu {
-    static func install(appName: String) {
+    /// - Parameter fileMenu: fills the File menu each time it opens. Not retained.
+    static func install(appName: String, fileMenu: NSMenuDelegate) {
         let main = NSMenu()
         main.addItem(submenu(named: appName, items: [
             NSMenuItem(
@@ -17,6 +18,11 @@ enum MainMenu {
             .separator(),
             NSMenuItem(title: "Quit \(appName)", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"),
         ]))
+
+        let file = submenu(named: "File", items: [])
+        file.submenu?.delegate = fileMenu
+        file.submenu?.autoenablesItems = false
+        main.addItem(file)
 
         main.addItem(submenu(named: "Edit", items: [
             NSMenuItem(title: "Undo", action: Selector(("undo:")), keyEquivalent: "z"),

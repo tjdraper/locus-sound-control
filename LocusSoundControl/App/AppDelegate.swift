@@ -27,7 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
 
     func applicationDidFinishLaunching(_: Notification) {
-        MainMenu.install(appName: "Locus Sound Control")
+        MainMenu.install(appName: "Locus Sound Control", fileMenu: soundDevicesWindow.fileMenu)
         // Before the updater starts, since accepting the move relaunches from the new location.
         ApplicationsFolderMoveWorkflow().offerIfNeeded()
         updates.start()

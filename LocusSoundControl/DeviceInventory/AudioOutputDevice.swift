@@ -13,7 +13,7 @@ nonisolated struct AudioOutputDevice: Identifiable, Equatable, Sendable {
 
     let transport: AudioDeviceTransport
 
-    /// The symbol shown for this device until slice 5 lets the user assign one.
+    /// The guessed symbol. One the user assigns is kept on the device's `DeviceEntry` and wins over this.
     let symbolName: String
 
     var id: String { uid }
