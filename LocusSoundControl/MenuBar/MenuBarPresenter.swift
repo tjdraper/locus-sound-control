@@ -15,6 +15,7 @@ final class MenuBarPresenter: NSObject {
 
     private lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private var iconTask: Task<Void, Never>?
+    private var accentTask: Task<Void, Never>?
 
     init(
         outputDevices: OutputDeviceInventory,
@@ -32,6 +33,7 @@ final class MenuBarPresenter: NSObject {
 
     deinit {
         iconTask?.cancel()
+        accentTask?.cancel()
     }
 
     func start() {
@@ -45,29 +47,46 @@ final class MenuBarPresenter: NSObject {
         // macOS switches to a device the moment it connects, before the device list has settled
         // enough to include it. The remembered entry already knows its icon, so the menu bar does
         // not flash a generic speaker while the list catches up.
-        iconTask = Task { [weak self, outputDevices, priorityOrder] in
-            let current = Observations {
+        iconTask = Task { [weak self, outputDevices, priorityOrder, override] in
+            let changes = Observations {
                 (
                     outputDevices.currentOutputUID.flatMap { priorityOrder.order.entry(forUID: $0) },
-                    outputDevices.currentDevice
+                    outputDevices.currentDevice,
+                    override.uid != nil
                 )
             }
-            for await (entry, device) in current {
-                self?.statusItem.button?.image = MenuBarIcon.image(
-                    symbolName: entry?.symbolName ?? device?.symbolName ?? OutputDeviceSymbol.generic,
-                    deviceName: entry?.name ?? device?.name
-                )
+            for await _ in changes {
+                self?.refreshIcon()
+            }
+        }
+
+        // The override's plate is filled with the accent color, which can change while it shows.
+        accentTask = Task { [weak self] in
+            for await _ in NotificationCenter.default.notifications(named: NSColor.systemColorsDidChangeNotification) {
+                self?.refreshIcon()
             }
         }
     }
 
-    @objc private func overrideWithDevice(_ sender: NSMenuItem) {
-        guard let device = sender.representedObject as? AudioOutputDevice else { return }
-        override.set(device.uid)
+    private func refreshIcon() {
+        let device = outputDevices.currentDevice
+        let entry = outputDevices.currentOutputUID.flatMap { priorityOrder.order.entry(forUID: $0) }
+        statusItem.button?.image = MenuBarIcon.image(
+            symbolName: entry?.symbolName ?? device?.symbolName ?? OutputDeviceSymbol.generic,
+            deviceName: entry?.name ?? device?.name,
+            isOverridden: override.uid != nil
+        )
     }
 
-    @objc private func cancelOverride() {
-        override.cancel()
+    @objc private func overrideWithDevice(_ sender: NSMenuItem) {
+        guard let device = sender.representedObject as? AudioOutputDevice else { return }
+        // Choosing the overridden device again is the way to cancel from the keyboard, which cannot
+        // reach the banner's button.
+        if device.uid == override.uid {
+            override.cancel()
+        } else {
+            override.set(device.uid)
+        }
     }
 
     @objc private func openSoundDevices() {
@@ -89,6 +108,15 @@ extension MenuBarPresenter: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
+        if let overridden = outputDevices.devices.first(where: { $0.uid == override.uid }) {
+            menu.addItem(ActiveOverrideMenuItem.make(device: overridden) { [weak self, weak menu] in
+                // A button inside a menu does not close it the way choosing an item does.
+                menu?.cancelTracking()
+                self?.override.cancel()
+            })
+            menu.addItem(.separator())
+        }
+
         let devices = OutputDeviceMenuBuilder.rows(
             for: priorityOrder.order.inPriorityOrder(outputDevices.devices),
             currentOutputUID: outputDevices.currentOutputUID,
@@ -97,9 +125,6 @@ extension MenuBarPresenter: NSMenuDelegate {
         )
         for row in devices {
             menu.addItem(row)
-        }
-        if override.uid != nil {
-            menu.addItem(item(title: "Cancel Override", action: #selector(cancelOverride)))
         }
 
         if !devices.isEmpty { menu.addItem(.separator()) }

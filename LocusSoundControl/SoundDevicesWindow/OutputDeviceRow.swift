@@ -20,6 +20,7 @@ struct OutputDeviceRow: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(entry.name)
+                        .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
 
                     // The identifiers slice 6 matches on, shown because they are the whole reason
                     // that slice is hard and this is where they can be read against a real setup.
@@ -39,10 +40,15 @@ struct OutputDeviceRow: View {
 
             Spacer(minLength: 12)
 
-            if let status {
-                Text(status)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                if let status {
+                    Text(status)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if isOverride {
+                    overrideTag
+                }
             }
         }
         .padding(.vertical, 4)
@@ -59,11 +65,23 @@ struct OutputDeviceRow: View {
 
     /// Said in words so that a device's state never rests on dimming alone.
     private var status: String? {
-        switch (isCurrentOutput, isOverride) {
-        case (true, true): "Current Output · Override"
-        case (true, false): "Current Output"
-        case (false, true): "Override"
-        case (false, false): device == nil ? "Not Connected" : nil
+        if isCurrentOutput { return "Current Output" }
+        return device == nil ? "Not Connected" : nil
+    }
+
+    /// A selected row is already filled with the accent color, so the tag steps back to the
+    /// row's own text color there instead of disappearing into it.
+    private var overrideTag: some View {
+        // Not a Label: a Label sets where the list's separator starts, and would pull this row's
+        // separator across to the tag.
+        HStack(spacing: 4) {
+            Image(systemName: "pin.fill")
+            Text("Override")
         }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(.tint))
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .background(isSelected ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.tint.opacity(0.15)), in: Capsule())
     }
 }
