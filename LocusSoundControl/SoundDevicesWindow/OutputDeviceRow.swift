@@ -32,13 +32,14 @@ struct OutputDeviceRow: View {
                     Text(connectionLine)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .help(mergeExplanation ?? "")
 
                     // The identifiers devices are matched on, shown because they are the whole
                     // reason matching is hard and this is where they can be read against a real
-                    // setup. Every UID an entry covers is listed, so a merge the app made on its
-                    // own is visible rather than guessed at.
+                    // setup. Every UID an entry covers is listed, so which ones a merge joined can
+                    // be read rather than guessed at.
                     if showsDebugInfo {
-                        ForEach(uids.dropFirst(), id: \.self) { uid in
+                        ForEach(uids, id: \.self) { uid in
                             Text(uid)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -97,9 +98,18 @@ struct OutputDeviceRow: View {
         isCurrentOutput && !isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary)
     }
 
-    /// How the device is connected, and with debug info on, the first of its UIDs.
+    /// How the device is connected, and whether this row stands for more than one device macOS
+    /// reports. The app merges some on its own, such as a dock seen through a different port, so
+    /// a merge the user never asked for is said here rather than left for them to wonder about.
     private var connectionLine: String {
-        ([entry.transport.displayName] + (showsDebugInfo ? uids.prefix(1) : [])).joined(separator: " · ")
+        let merged = entry.uids.count > 1 ? "Merged from \(entry.uids.count) devices" : nil
+        return [entry.transport.displayName, merged].compactMap(\.self).joined(separator: " · ")
+    }
+
+    private var mergeExplanation: String? {
+        guard entry.uids.count > 1 else { return nil }
+        return "macOS has reported this device \(entry.uids.count) different ways, for example once for "
+            + "each port it has been plugged into. If they are not really one device, split them apart."
     }
 
     /// The connected one first.
