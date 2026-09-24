@@ -9,6 +9,6 @@
         <circle cx="720" cy="660" r="34"/>
         <circle cx="720" cy="785" r="70"/>
     </g>
-    <path d="M365 655 H410 Q450 655 450 615 V375 Q450 335 490 335 H566" style="fill:none;stroke:rgb(255,255,255);stroke-width:64px;stroke-linecap:round;stroke-linejoin:round;"/>
-    <path d="M615 245 A120 120 0 0 1 855 245" style="fill:none;stroke:rgb(255,255,255);stroke-width:64px;stroke-linecap:round;"/>
+    <path d="M365 687 H410 A72 72 0 0 0 482 615 V375 A8 8 0 0 1 490 367 H566 A32 32 0 0 0 566 303 H490 A72 72 0 0 0 418 375 V615 A8 8 0 0 1 410 623 H365 A32 32 0 0 0 365 687 Z" style="fill:rgb(255,255,255);"/>
+    <path d="M583 245 A152 152 0 0 1 887 245 A32 32 0 0 1 823 245 A88 88 0 0 0 647 245 A32 32 0 0 1 583 245 Z" style="fill:rgb(255,255,255);"/>
 </svg>
