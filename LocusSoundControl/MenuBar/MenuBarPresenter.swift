@@ -53,13 +53,14 @@ final class MenuBarPresenter: NSObject {
         // macOS switches to a device the moment it connects, before the device list has settled
         // enough to include it. The remembered entry already knows its icon, so the menu bar does
         // not flash a generic speaker while the list catches up.
-        iconTask = Task { [weak self, outputDevices, priorityOrder, override] in
+        iconTask = Task { [weak self, outputDevices, priorityOrder, override, updates] in
             let changes = Observations {
                 (
                     outputDevices.currentOutputUID.flatMap { priorityOrder.order.entry(forUID: $0) },
                     outputDevices.currentDevice,
                     override.uid != nil,
-                    priorityOrder.order.queued.isEmpty
+                    priorityOrder.order.queued.isEmpty,
+                    updates.waitingUpdateVersion
                 )
             }
             for await _ in changes {
@@ -82,7 +83,8 @@ final class MenuBarPresenter: NSObject {
             symbolName: entry?.symbolName ?? device?.symbolName ?? OutputDeviceSymbol.generic,
             deviceName: entry?.name ?? device?.name,
             isOverridden: override.uid != nil,
-            isBadged: !priorityOrder.order.queued.isEmpty
+            hasDevicesToSort: !priorityOrder.order.queued.isEmpty,
+            hasUpdateWaiting: updates.waitingUpdateVersion != nil
         )
     }
 

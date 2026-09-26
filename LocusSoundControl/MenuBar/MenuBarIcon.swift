@@ -1,14 +1,22 @@
 import AppKit
 
 /// The image in the menu bar, showing the kind of device the Mac is playing through, whether an
-/// override is holding it there, and whether new devices are waiting to be sorted.
+/// override is holding it there, and whether new devices or an update are waiting on the user.
 nonisolated enum MenuBarIcon {
     /// A symbol name the user assigned stops resolving if Apple renames or drops that
     /// symbol, and an empty menu bar would leave no way to reach the app at all.
-    static func image(symbolName: String, deviceName: String?, isOverridden: Bool, isBadged: Bool) -> NSImage? {
+    static func image(
+        symbolName: String,
+        deviceName: String?,
+        isOverridden: Bool,
+        hasDevicesToSort: Bool,
+        hasUpdateWaiting: Bool
+    ) -> NSImage? {
         var description = deviceName.map { "Sound output: \($0)" } ?? "Sound output"
         if isOverridden { description += ", override active" }
-        if isBadged { description += ", new devices to sort" }
+        if hasDevicesToSort { description += ", new devices to sort" }
+        if hasUpdateWaiting { description += ", update available" }
+        let isBadged = hasDevicesToSort || hasUpdateWaiting
 
         guard let symbol = NSImage(systemSymbolName: symbolName, accessibilityDescription: description)
             ?? NSImage(systemSymbolName: OutputDeviceSymbol.generic, accessibilityDescription: description)
