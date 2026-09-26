@@ -372,7 +372,7 @@
 				CODE_SIGN_ENTITLEMENTS = LocusSoundControl/SupportingFiles/LocusSoundControl.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2026.0.8;
+				CURRENT_PROJECT_VERSION = 2026.0.9;
 				DEVELOPMENT_TEAM = CQZ49H6WAK;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -387,7 +387,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 2026.0.8;
+				MARKETING_VERSION = 2026.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buzzingpixel.LocusSoundControl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -407,7 +407,7 @@
 				CODE_SIGN_ENTITLEMENTS = LocusSoundControl/SupportingFiles/LocusSoundControl.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2026.0.8;
+				CURRENT_PROJECT_VERSION = 2026.0.9;
 				DEVELOPMENT_TEAM = CQZ49H6WAK;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -422,7 +422,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 2026.0.8;
+				MARKETING_VERSION = 2026.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buzzingpixel.LocusSoundControl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -438,11 +438,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2026.0.8;
+				CURRENT_PROJECT_VERSION = 2026.0.9;
 				DEVELOPMENT_TEAM = CQZ49H6WAK;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 2026.0.8;
+				MARKETING_VERSION = 2026.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buzzingpixel.LocusSoundControlTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -458,11 +458,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2026.0.8;
+				CURRENT_PROJECT_VERSION = 2026.0.9;
 				DEVELOPMENT_TEAM = CQZ49H6WAK;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 2026.0.8;
+				MARKETING_VERSION = 2026.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.buzzingpixel.LocusSoundControlTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
